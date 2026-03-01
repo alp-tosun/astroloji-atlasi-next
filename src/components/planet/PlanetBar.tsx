@@ -185,7 +185,7 @@ export function PlanetBar({ t }: PlanetBarProps) {
   if (loading) {
     return (
       <div className="rounded-2xl border border-border bg-surface/50 p-6 text-center">
-        <p className="text-sm text-muted animate-pulse">Gezegen verileri hesaplanıyor...</p>
+        <p className="text-sm text-muted animate-pulse">{t('gezegen_loading')}</p>
       </div>
     );
   }
@@ -209,8 +209,8 @@ export function PlanetBar({ t }: PlanetBarProps) {
         <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 p-3">
           <span className="text-lg">⚠️</span>
           <div>
-            <p className="text-sm font-semibold text-red-400">Merkür Retrosu Aktif!</p>
-            <p className="text-xs text-red-400/70">İletişim, teknoloji ve seyahatte dikkatli olun. Önemli kararları mümkünse erteleyin.</p>
+            <p className="text-sm font-semibold text-red-400">{t('merkur_retro_aktif')}</p>
+            <p className="text-xs text-red-400/70">{t('merkur_retro_aciklama')}</p>
           </div>
         </div>
       )}

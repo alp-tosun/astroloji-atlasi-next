@@ -11,10 +11,11 @@ interface ShareModalProps {
   onClose: () => void;
   content: string;
   t: (key: string) => string;
+  lang: string;
   burc?: string;
 }
 
-export function ShareModal({ open, onClose, content, t, burc }: ShareModalProps) {
+export function ShareModal({ open, onClose, content, t, lang, burc }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -27,7 +28,7 @@ export function ShareModal({ open, onClose, content, t, burc }: ShareModalProps)
     try {
       const { Share } = await import('@capacitor/share');
       await Share.share({
-        title: 'Astroloji Atlasi',
+        title: t('site_name'),
         text: content,
       });
     } catch {
@@ -60,7 +61,7 @@ export function ShareModal({ open, onClose, content, t, burc }: ShareModalProps)
       {/* Visual download section */}
       <div className="mt-4 pt-4 border-t border-border">
         <h4 className="text-sm font-medium text-text mb-3">{t('paylasim_gorsel_indir')}</h4>
-        <StoryCard content={content} burc={burc} t={t} />
+        <StoryCard content={content} burc={burc} t={t} lang={lang} />
       </div>
     </Modal>
   );

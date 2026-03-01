@@ -21,6 +21,7 @@ import { useCrossToolStore } from '@/stores/cross-tool-store';
 import { useToastStore } from '@/stores/toast-store';
 import type { ToolId } from '@/types/profile';
 import type { CosmicEnergy, NumerologyNumbers } from '@/types/analysis';
+import type { Messages } from '@/types/i18n';
 import { getAnalyses, getOnboardingStatus, setOnboardingComplete, getStreakData } from '@/lib/firebase/firestore';
 import type { StreakData } from '@/lib/firebase/firestore';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
@@ -33,8 +34,7 @@ import { ToolPanelRenderer } from '@/components/tools/ToolPanelRenderer';
 import trMessages from '@/messages/tr.json';
 import enMessages from '@/messages/en.json';
 
-type Messages = Record<string, string | string[] | string[][]>;
-const messages: Record<string, Messages> = { tr: trMessages as unknown as Messages, en: enMessages as unknown as Messages };
+const messages: Record<string, Messages> = { tr: trMessages as Messages, en: enMessages as Messages };
 
 export default function Home() {
   const [lang, setLang] = useState('tr');
@@ -153,10 +153,10 @@ export default function Home() {
         Skip to content
       </a>
       <SpaceBackground />
-      <LivePlanetBand />
+      <LivePlanetBand t={t} lang={lang} />
       <Header lang={lang} onLangChange={changeLang} onAuthOpen={() => setAuthOpen(true)} onToolSelect={handleToolSelect} t={t} streak={streakData?.streak} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} t={t} lang={lang} />
-      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} content={result} t={t} burc={profile.burc} />
+      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} content={result} t={t} lang={lang} burc={profile.burc} />
       <ToolModal
         open={!!activeTool}
         onClose={() => { setActiveTool(null); }}

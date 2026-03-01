@@ -29,6 +29,9 @@ export function Modal({ open, onClose, children, title, fullScreen }: ModalProps
     }, 250);
   }, [onClose]);
 
+  // Store the element that was focused before the modal opened so we can restore it on close
+  const previouslyFocusedElement = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeWithAnimation();
@@ -42,6 +45,66 @@ export function Modal({ open, onClose, children, title, fullScreen }: ModalProps
       document.body.style.overflow = '';
     };
   }, [open, closeWithAnimation]);
+
+  // Focus trap: keep Tab / Shift+Tab cycling within the modal
+  useEffect(() => {
+    if (!open) return;
+
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+
+    // Remember the element that had focus before the modal opened
+    previouslyFocusedElement.current = document.activeElement as HTMLElement | null;
+
+    const focusableSelector =
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    // Auto-focus the first focusable element, or fall back to the overlay container
+    const initialFocusables = overlay.querySelectorAll<HTMLElement>(focusableSelector);
+    if (initialFocusables.length > 0) {
+      initialFocusables[0].focus();
+    } else {
+      overlay.focus();
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      const focusables = overlay.querySelectorAll<HTMLElement>(focusableSelector);
+      if (focusables.length === 0) {
+        // Nothing to cycle through; just prevent focus from leaving
+        e.preventDefault();
+        return;
+      }
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (e.shiftKey) {
+        // Shift+Tab: if we are on the first element, wrap to the last
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        // Tab: if we are on the last element, wrap to the first
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      // Restore focus to the element that was focused before the modal opened
+      if (previouslyFocusedElement.current && typeof previouslyFocusedElement.current.focus === 'function') {
+        previouslyFocusedElement.current.focus();
+      }
+    };
+  }, [open]);
 
   // Swipe-down to close (mobile only)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -100,6 +163,7 @@ export function Modal({ open, onClose, children, title, fullScreen }: ModalProps
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? titleId : undefined}
+      tabIndex={-1}
       className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm ${
         closing ? 'animate-[fadeOut_0.25s_ease-out_forwards]' : 'animate-[fadeIn_0.2s_ease-out]'
       }`}

@@ -16,6 +16,9 @@ import { RisingUseCase } from '@/application/use-cases/rising-use-case';
 import { MoonSignUseCase } from '@/application/use-cases/moon-sign-use-case';
 import { DailyContentUseCase } from '@/application/use-cases/daily-content-use-case';
 import { RitualUseCase } from '@/application/use-cases/ritual-use-case';
+import { TransitKisiselUseCase } from '@/application/use-cases/transit-kisisel-use-case';
+import { YildizNameUseCase } from '@/application/use-cases/yildizname-use-case';
+import { KristalUseCase } from '@/application/use-cases/kristal-use-case';
 
 // Infrastructure singletons
 const aiService = new AIServiceImpl();
@@ -38,4 +41,7 @@ export const useCases = {
   moonSign: new MoonSignUseCase(aiService, analysisRepo, 'moon-sign'),
   dailyContent: new DailyContentUseCase(aiService, cacheRepo),
   ritual: new RitualUseCase(aiService, cacheRepo, analysisRepo, 'ritual'),
+  transitKisisel: new TransitKisiselUseCase(aiService, analysisRepo, 'transit-kisisel'),
+  yildizName: new YildizNameUseCase(aiService, analysisRepo, 'yildizname'),
+  kristal: new KristalUseCase(aiService, analysisRepo, 'kristal'),
 };

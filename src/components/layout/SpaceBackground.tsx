@@ -38,8 +38,10 @@ export function SpaceBackground() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Init stars
-    starsRef.current = Array.from({ length: 180 }, () => ({
+    // Init stars — fewer on mobile for performance
+    const isMobile = canvas.width < 768;
+    const starCount = isMobile ? 80 : 180;
+    starsRef.current = Array.from({ length: starCount }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       r: Math.random() * 1.5 + 0.3,
@@ -48,6 +50,15 @@ export function SpaceBackground() {
     }));
 
     let animId: number;
+    let isVisible = true;
+
+    const handleVisibility = () => {
+      isVisible = !document.hidden;
+      if (isVisible) {
+        animId = requestAnimationFrame(draw);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     const drawStar = (s: Star) => {
       const flicker = Math.sin(frameRef.current * s.speed) * 0.3 + 0.7;
@@ -103,13 +114,16 @@ export function SpaceBackground() {
         return true;
       });
 
-      animId = requestAnimationFrame(draw);
+      if (isVisible) {
+        animId = requestAnimationFrame(draw);
+      }
     };
 
     draw();
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
 

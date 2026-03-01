@@ -8,6 +8,7 @@ import type { CosmicEnergy } from '@/types/analysis';
 
 interface KozmikPanelProps {
   t: (k: string) => string;
+  lang: string;
   callApi: (e: string, b: Record<string, unknown>) => Promise<void>;
   result: string;
   resultLoading: boolean;
@@ -17,7 +18,7 @@ interface KozmikPanelProps {
   profile: Record<string, string | undefined>;
 }
 
-export function KozmikPanel({ t, callApi, result, resultLoading, streaming, cosmicEnergy, setCosmicEnergy, profile }: KozmikPanelProps) {
+export function KozmikPanel({ t, lang, callApi, result, resultLoading, streaming, cosmicEnergy, setCosmicEnergy, profile }: KozmikPanelProps) {
   const calculate = () => {
     const burc = profile.burc || '';
     const now = new Date();
@@ -45,8 +46,10 @@ export function KozmikPanel({ t, callApi, result, resultLoading, streaming, cosm
     const clamp = (v: number) => Math.min(95, Math.max(20, v + (dayOfMonth % 7) - 3));
     setCosmicEnergy({ ask: clamp(ask), para: clamp(para), kariyer: clamp(kariyer), ruhsal: clamp(ruhsal) });
 
-    const gunAdlariTR = ['Pazar', 'Pazartesi', 'Sal\u0131', '\u00c7ar\u015famba', 'Per\u015fembe', 'Cuma', 'Cumartesi'];
-    callApi('/api/cosmic', { tarih: now.toLocaleDateString('tr-TR'), gun: gunAdlariTR[dayOfWeek] });
+    const gunAdlari = lang === 'en'
+      ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      : ['Pazar', 'Pazartesi', 'Sal\u0131', '\u00c7ar\u015famba', 'Per\u015fembe', 'Cuma', 'Cumartesi'];
+    callApi('/api/cosmic', { tarih: now.toLocaleDateString(lang === 'en' ? 'en-US' : 'tr-TR'), gun: gunAdlari[dayOfWeek] });
   };
 
   return (

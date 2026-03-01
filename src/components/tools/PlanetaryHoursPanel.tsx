@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as Astronomy from 'astronomy-engine';
 import { calculatePlanetaryHours } from '@/lib/astrology/planetary-hours';
-import { TURKISH_CITIES } from '@/lib/astrology/geocoding';
+import { TURKISH_CITIES, geocode } from '@/lib/astrology/geocoding';
 import { Button } from '@/components/ui/Button';
 import { ResultBox } from '@/components/analysis/ResultBox';
 
@@ -50,14 +50,35 @@ function formatCountdown(ms: number): string {
 
 export function PlanetaryHoursPanel({ t, callApi, result, resultLoading, streaming, birthPlace }: PlanetaryHoursPanelProps) {
   // B5: resolve observer from profile birth place
-  const observer = useMemo(() => {
+  // First try synchronous lookup in TURKISH_CITIES, then fall back to async geocode
+  const syncObserver = useMemo(() => {
     if (birthPlace) {
       const normalized = birthPlace.toLowerCase().trim();
       const city = TURKISH_CITIES[normalized];
       if (city) return new Astronomy.Observer(city.lat, city.lng, 0);
     }
-    return undefined; // fallback to Istanbul default inside calculatePlanetaryHours
+    return undefined;
   }, [birthPlace]);
+
+  const [asyncObserver, setAsyncObserver] = useState<Astronomy.Observer | undefined>(undefined);
+
+  // Geocode birth place asynchronously when not found in TURKISH_CITIES
+  useEffect(() => {
+    if (syncObserver || !birthPlace) {
+      setAsyncObserver(undefined);
+      return;
+    }
+    let cancelled = false;
+    geocode(birthPlace).then((geo) => {
+      if (!cancelled && geo) {
+        setAsyncObserver(new Astronomy.Observer(geo.lat, geo.lng, 0));
+      }
+    });
+    return () => { cancelled = true; };
+  }, [birthPlace, syncObserver]);
+
+  // Use sync result first, then async geocode result, then undefined (Istanbul default)
+  const observer = syncObserver ?? asyncObserver;
 
   // B9: stale fix — recalculate when day changes
   const today = new Date().toDateString();

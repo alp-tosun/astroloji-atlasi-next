@@ -1,46 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { calculateNatalChart } from '@/lib/astrology/natal-chart';
 import { geocode } from '@/lib/astrology/geocoding';
-import { z } from 'zod';
-import { withRateLimit } from '@/lib/api-middleware';
-
-const natalSchema = z.object({
-  date: z.string().refine((d) => !isNaN(new Date(d).getTime()), 'Geçersiz tarih'),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
-  place: z.string().optional(),
-  houseSystem: z.enum(['placidus', 'whole-sign', 'equal']).default('whole-sign'),
-});
+import { withApiGuards } from '@/lib/api-middleware';
+import { apiSuccess, apiError } from '@/lib/api-helpers';
+import { natalSchema } from '@/lib/validation/schemas';
 
 export async function POST(req: NextRequest) {
-  const rateLimitResponse = await withRateLimit(req, 'data');
-  if (rateLimitResponse) return rateLimitResponse;
+  const guard = await withApiGuards(req, natalSchema, { rateLimit: 'data' });
+  if ('response' in guard) return guard.response;
 
-  let body;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Geçersiz JSON' }, { status: 400 });
-  }
-  
-  const parsed = natalSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
-  }
-  
-  const { date: dateStr, houseSystem } = parsed.data;
-  let { latitude, longitude } = parsed.data;
+  const { date: dateStr, houseSystem } = guard.data;
+  let { latitude, longitude } = guard.data;
   const date = new Date(dateStr);
-  
+
   // If no coords but place given, geocode
   if (latitude === undefined || longitude === undefined) {
-    if (parsed.data.place) {
-      const geo = await geocode(parsed.data.place);
+    if (guard.data.place) {
+      const geo = await geocode(guard.data.place);
       if (geo) {
         latitude = geo.lat;
         longitude = geo.lng;
       } else {
-        return NextResponse.json({ error: 'Konum bulunamadı' }, { status: 400 });
+        return apiError('Konum bulunamadı', 400);
       }
     } else {
       // Default to Istanbul
@@ -48,10 +29,10 @@ export async function POST(req: NextRequest) {
       longitude = 28.9784;
     }
   }
-  
+
   const chart = calculateNatalChart(date, latitude, longitude, houseSystem);
-  
-  return NextResponse.json({
+
+  return apiSuccess({
     date: chart.date.toISOString(),
     location: { latitude, longitude },
     ascendant: chart.ascendant,

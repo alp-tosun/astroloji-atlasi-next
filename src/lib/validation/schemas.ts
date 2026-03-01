@@ -120,6 +120,14 @@ export const ritualSchema = z.object({
   crossContext: crossContextField,
 });
 
+export const dailyContentSchema = z.object({
+  type: z.enum(['gunun-karti', 'haftalik', 'aylik']),
+  lang: z.enum(['tr', 'en']).optional().default('tr'),
+  burc: z.string().max(20).optional().default(''),
+  profil: profileSchema,
+  uid: uidField,
+});
+
 export const tarotSchema = z.object({
   cards: z.array(
     z.object({
@@ -132,4 +140,37 @@ export const tarotSchema = z.object({
   lang: z.enum(['tr', 'en']).optional().default('tr'),
   uid: uidField,
   crossContext: crossContextField,
+});
+
+export const transitKisiselSchema = z.object({
+  transitSummary: z.string().min(1, 'Transit verisi eksik.').max(3000),
+  profil: profileSchema,
+  lang: z.enum(['tr', 'en']).optional().default('tr'),
+  uid: uidField,
+  crossContext: crossContextField,
+});
+
+export const yildizNameSchema = z.object({
+  yildizSummary: z.string().min(1, 'Yıldızname verisi eksik.').max(2000),
+  profil: profileSchema,
+  lang: z.enum(['tr', 'en']).optional().default('tr'),
+  uid: uidField,
+  crossContext: crossContextField,
+});
+
+export const kristalSchema = z.object({
+  crystalSummary: z.string().min(1, 'Kristal verisi eksik.').max(2000),
+  intention: z.string().max(50).optional().default('genel'),
+  profil: profileSchema,
+  lang: z.enum(['tr', 'en']).optional().default('tr'),
+  uid: uidField,
+  crossContext: crossContextField,
+});
+
+export const natalSchema = z.object({
+  date: z.string().refine((d) => !isNaN(new Date(d).getTime()), 'Geçersiz tarih'),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  place: z.string().optional(),
+  houseSystem: z.enum(['placidus', 'whole-sign', 'equal']).default('whole-sign'),
 });

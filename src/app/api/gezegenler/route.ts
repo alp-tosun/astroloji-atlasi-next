@@ -3,6 +3,10 @@ import { withRateLimit } from '@/lib/api-middleware';
 
 export const dynamic = 'force-dynamic';
 
+// In-memory cache for ipgeolocation API responses
+let ipgeoCache: { data: Record<string, unknown>; timestamp: number } | null = null;
+const CACHE_TTL = 3600_000; // 1 hour in ms
+
 const EVRE_MAP: Record<string, [string, string]> = {
   NEW_MOON: ['Yeni Ay', '🌑'],
   WAXING_CRESCENT: ['Hilal', '🌒'],
@@ -72,19 +76,25 @@ export async function GET(req: NextRequest) {
     const apiKey = process.env.IPGEO_API_KEY;
     if (apiKey) {
       try {
-        const ipgeoRes = await fetch(
-          `https://api.ipgeolocation.io/astronomy?apiKey=${apiKey}&lat=39.9208&long=32.8541&date=${tarih}`,
-          { next: { revalidate: 3600 } },
-        );
-        const ipgeo = await ipgeoRes.json();
+        let ipgeo: Record<string, unknown>;
+        if (ipgeoCache && Date.now() - ipgeoCache.timestamp < CACHE_TTL) {
+          ipgeo = ipgeoCache.data;
+        } else {
+          const ipgeoRes = await fetch(
+            `https://api.ipgeolocation.io/astronomy?apiKey=${apiKey}&lat=39.9208&long=32.8541&date=${tarih}`,
+          );
+          ipgeo = await ipgeoRes.json();
+          ipgeoCache = { data: ipgeo, timestamp: Date.now() };
+        }
         if (ipgeo?.moon_status) {
-          const evre = EVRE_MAP[ipgeo.moon_status] || [ipgeo.moon_status, '🌙'];
+          const status = ipgeo.moon_status as string;
+          const evre = EVRE_MAP[status] || [status, '🌙'];
           ayEvresi = evre[0];
           ayIkon = evre[1];
-          gundogumu = ipgeo.sunrise || '';
-          gunbatimi = ipgeo.sunset || '';
-          ayDogumu = ipgeo.moonrise || '';
-          ayBatimi = ipgeo.moonset || '';
+          gundogumu = (ipgeo.sunrise as string) || '';
+          gunbatimi = (ipgeo.sunset as string) || '';
+          ayDogumu = (ipgeo.moonrise as string) || '';
+          ayBatimi = (ipgeo.moonset as string) || '';
         }
       } catch (e) {
         console.log('ipgeo error:', e);

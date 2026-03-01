@@ -11,18 +11,22 @@ interface ConfirmDialogProps {
   variant?: 'danger' | 'default';
   onConfirm: () => void;
   onCancel: () => void;
+  t?: (key: string) => string;
 }
 
 export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Onayla',
-  cancelLabel = 'Vazgeç',
+  confirmLabel,
+  cancelLabel,
   variant = 'default',
   onConfirm,
   onCancel,
+  t,
 }: ConfirmDialogProps) {
+  const resolvedConfirmLabel = confirmLabel ?? (t ? t('confirm_onayla') : 'Confirm');
+  const resolvedCancelLabel = cancelLabel ?? (t ? t('confirm_vazgec') : 'Cancel');
   const cancelRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const descId = useId();
@@ -54,7 +58,7 @@ export function ConfirmDialog({
             onClick={onCancel}
             className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm text-muted hover:text-text hover:bg-card/50 transition-colors"
           >
-            {cancelLabel}
+            {resolvedCancelLabel}
           </button>
           <button
             onClick={onConfirm}
@@ -64,7 +68,7 @@ export function ConfirmDialog({
                 : 'bg-accent hover:bg-accent-light'
             }`}
           >
-            {confirmLabel}
+            {resolvedConfirmLabel}
           </button>
         </div>
       </div>

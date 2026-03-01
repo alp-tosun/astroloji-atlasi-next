@@ -13,7 +13,7 @@ export function getMercuryRetrograde(date: Date): MercuryRetroInfo {
   
   let phase: MercuryRetroInfo['phase'];
   if (Math.abs(speed) < 0.1) {
-    phase = isRetrograde ? 'stationary-direct' : 'stationary-retrograde';
+    phase = isRetrograde ? 'stationary-retrograde' : 'stationary-direct';
   } else {
     phase = isRetrograde ? 'retrograde' : 'direct';
   }

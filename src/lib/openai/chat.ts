@@ -42,19 +42,23 @@ export async function chatWithVision(
   textPrompt: string,
   model = DEFAULT_MODEL,
   maxTokens = 800,
+  systemPrompt?: string,
 ): Promise<string> {
+  const messages: Parameters<typeof openai.chat.completions.create>[0]['messages'] = [];
+  if (systemPrompt) {
+    messages.push({ role: 'system', content: systemPrompt });
+  }
+  messages.push({
+    role: 'user',
+    content: [
+      { type: 'image_url', image_url: { url: imageBase64, detail: 'low' } },
+      { type: 'text', text: textPrompt },
+    ],
+  });
   const r = await openai.chat.completions.create({
     model,
     max_tokens: maxTokens,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'image_url', image_url: { url: imageBase64, detail: 'low' } },
-          { type: 'text', text: textPrompt },
-        ],
-      },
-    ],
+    messages,
   }, { timeout: DEFAULT_TIMEOUT });
   return r.choices[0].message.content ?? '';
 }
@@ -64,19 +68,23 @@ export async function chatWithVisionStream(
   textPrompt: string,
   model = DEFAULT_MODEL,
   maxTokens = 800,
+  systemPrompt?: string,
 ) {
+  const messages: Parameters<typeof openai.chat.completions.create>[0]['messages'] = [];
+  if (systemPrompt) {
+    messages.push({ role: 'system', content: systemPrompt });
+  }
+  messages.push({
+    role: 'user',
+    content: [
+      { type: 'image_url', image_url: { url: imageBase64, detail: 'low' } },
+      { type: 'text', text: textPrompt },
+    ],
+  });
   return openai.chat.completions.create({
     model,
     max_tokens: maxTokens,
     stream: true,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'image_url', image_url: { url: imageBase64, detail: 'low' } },
-          { type: 'text', text: textPrompt },
-        ],
-      },
-    ],
+    messages,
   }, { timeout: DEFAULT_TIMEOUT });
 }

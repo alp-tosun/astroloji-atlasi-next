@@ -23,12 +23,12 @@ export abstract class BaseAIUseCase<TInput> {
     );
 
     if (uid && this.shouldSaveAnalysis(input)) {
-      this.analysisRepo.updateStreak(uid).catch(() => {});
+      this.analysisRepo.updateStreak(uid).catch((e) => console.error('[BaseAIUseCase] updateStreak failed:', e));
     }
 
     const onComplete = (full: string) => {
       if (uid && this.shouldSaveAnalysis(input)) {
-        this.analysisRepo.saveAnalysis(uid, this.toolId, full.substring(0, 1000)).catch(() => {});
+        this.analysisRepo.saveAnalysis(uid, this.toolId, full.substring(0, 1000)).catch((e) => console.error('[BaseAIUseCase] saveAnalysis failed:', e));
       }
     };
 

@@ -29,6 +29,6 @@ export const SINYAL_AGIRLIK: Record<ProfileFieldId, number> = {
 
 export const SINYAL_MAX = Object.values(SINYAL_AGIRLIK).reduce((a, b) => a + b, 0);
 
-export const PREMIUM_TOOLS = ['uyum', 'num', 'ruya', 'el', 'kosm', 'horar', 'haftalik', 'aylik', 'tarot'] as const;
+export const PREMIUM_TOOLS = ['uyum', 'num', 'ruya', 'el', 'kosm', 'horar', 'haftalik', 'aylik', 'tarot', 'transit-kisisel', 'yildizname', 'kristal'] as const;
 
-export type ToolId = 'burc' | 'el' | 'yuk' | 'ay-burc' | 'kosm' | 'num' | 'ruya' | 'horar' | 'gunluk' | 'uyum' | 'gecmis' | 'gezegen' | 'gunun-karti' | 'haftalik' | 'aylik' | 'transit' | 'ay-takvimi' | 'gezegen-saatleri' | 'rituel' | 'tarot';
+export type ToolId = 'burc' | 'el' | 'yuk' | 'ay-burc' | 'kosm' | 'num' | 'ruya' | 'horar' | 'gunluk' | 'uyum' | 'gecmis' | 'gezegen' | 'gunun-karti' | 'haftalik' | 'aylik' | 'transit' | 'ay-takvimi' | 'gezegen-saatleri' | 'rituel' | 'tarot' | 'transit-kisisel' | 'yildizname' | 'kristal';

@@ -11,7 +11,7 @@ export interface PalmInput {
 }
 
 export class PalmUseCase extends BaseVisionUseCase<PalmInput> {
-  protected buildVisionPrompt(input: PalmInput): { imageBase64: string; prompt: string } {
+  protected buildVisionPrompt(input: PalmInput): { imageBase64: string; prompt: string; systemPrompt?: string } {
     const profilText = buildProfilText(input.profil) || '(profil bilgisi girilmedi)';
 
     let elementNot = '';
@@ -29,6 +29,6 @@ export class PalmUseCase extends BaseVisionUseCase<PalmInput> {
     }
 
     const prompt = palmPrompt(profilText, elementNot, input.lang);
-    return { imageBase64: input.imageBase64, prompt: prompt.userPrompt };
+    return { imageBase64: input.imageBase64, prompt: prompt.userPrompt, systemPrompt: prompt.systemPrompt };
   }
 }

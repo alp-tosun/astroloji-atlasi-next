@@ -54,10 +54,11 @@ export function findAspects(
       for (const [type, angle] of Object.entries(ASPECT_ANGLES) as [AspectType, number][]) {
         const orb = Math.abs(diff - angle);
         if (orb <= orbs[type]) {
-          // Determine if applying: faster planet moving toward exact aspect
-          const applying = Math.abs(p1.speed) > Math.abs(p2.speed)
-            ? p1.speed > 0  // simplified
-            : p2.speed > 0;
+          // Determine if applying: the orb is decreasing over time.
+          // If diff > aspect angle, the planets need to move closer (relative speed positive = applying).
+          // If diff < aspect angle, the planets need to move apart (relative speed negative = applying).
+          const relativeSpeed = p1.speed - p2.speed;
+          const applying = diff > angle ? relativeSpeed > 0 : relativeSpeed < 0;
           
           aspects.push({
             planet1: p1.name,

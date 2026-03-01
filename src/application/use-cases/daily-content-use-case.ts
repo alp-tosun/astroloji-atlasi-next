@@ -17,13 +17,13 @@ const PLANET_TR: Record<string, string> = {
   Jupiter: 'Jüpiter', Venus: 'Venüs', Saturn: 'Satürn',
 };
 const PLANET_CARDS: Record<string, { card: string; icon: string; meaning: string }> = {
-  Sun: { card: 'Güneş Kartı', icon: '\u2600\uFE0F', meaning: 'Canlılık, başarı, enerji, kendini ifade etme' },
-  Moon: { card: 'Ay Kartı', icon: '\uD83C\uDF19', meaning: 'Sezgi, duygular, iç dünya, bilinçaltı' },
-  Mars: { card: 'Savaşçı Kartı', icon: '\u2694\uFE0F', meaning: 'Cesaret, eylem, tutku, mücadele' },
-  Mercury: { card: 'Haberci Kartı', icon: '\uD83D\uDCDC', meaning: 'İletişim, zeka, hız, bilgi' },
-  Jupiter: { card: 'Şans Kartı', icon: '\uD83C\uDF40', meaning: 'Bolluk, genişleme, bilgelik, şans' },
-  Venus: { card: 'Aşk Kartı', icon: '\uD83D\uDCAB', meaning: 'Aşk, güzellik, uyum, çekim' },
-  Saturn: { card: 'Bilge Kartı', icon: '\uD83C\uDFDB\uFE0F', meaning: 'Disiplin, sabır, yapı, ders' },
+  Sun: { card: 'Güneş Kartı', icon: '☀️', meaning: 'Canlılık, başarı, enerji, kendini ifade etme' },
+  Moon: { card: 'Ay Kartı', icon: '🌙', meaning: 'Sezgi, duygular, iç dünya, bilinçaltı' },
+  Mars: { card: 'Savaşçı Kartı', icon: '⚔️', meaning: 'Cesaret, eylem, tutku, mücadele' },
+  Mercury: { card: 'Haberci Kartı', icon: '📜', meaning: 'İletişim, zeka, hız, bilgi' },
+  Jupiter: { card: 'Şans Kartı', icon: '🍀', meaning: 'Bolluk, genişleme, bilgelik, şans' },
+  Venus: { card: 'Aşk Kartı', icon: '💫', meaning: 'Aşk, güzellik, uyum, çekim' },
+  Saturn: { card: 'Bilge Kartı', icon: '🏛️', meaning: 'Disiplin, sabır, yapı, ders' },
 };
 
 export interface DailyContentInput {
@@ -34,8 +34,6 @@ export interface DailyContentInput {
 }
 
 export class DailyContentUseCase extends BaseCachedAIUseCase<DailyContentInput> {
-  private prefix = '';
-
   protected getCollection(): string {
     return 'daily-content';
   }
@@ -69,26 +67,33 @@ export class DailyContentUseCase extends BaseCachedAIUseCase<DailyContentInput> 
     }
   }
 
-  protected transformForCache(full: string, _input: DailyContentInput): string {
-    return this.prefix + full;
+  private computePrefix(input: DailyContentInput): string {
+    if (input.type !== 'gunun-karti') return '';
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const ruler = DAY_RULERS[dayOfWeek];
+    const planet = getPlanetPosition(ruler, now);
+    return `**Yönetici Gezegen:** ${PLANET_TR[ruler]} (${planet.sign} ${planet.degree.toFixed(0)}°)\n\n`;
+  }
+
+  protected transformForCache(full: string, input: DailyContentInput): string {
+    return this.computePrefix(input) + full;
   }
 
   protected buildPrompt(input: DailyContentInput): PromptPair {
     const profilText = buildProfilText(input.profil);
     const now = new Date();
-    this.prefix = '';
 
     if (input.type === 'gunun-karti') {
       const dayOfWeek = now.getDay();
       const ruler = DAY_RULERS[dayOfWeek];
       const planet = getPlanetPosition(ruler, now);
       const cardInfo = PLANET_CARDS[ruler];
-      this.prefix = `**Yönetici Gezegen:** ${PLANET_TR[ruler]} (${planet.sign} ${planet.degree.toFixed(0)}°)\n\n`;
 
       const dateStr = now.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
       return dailyContentGununKartiPrompt(
         cardInfo, PLANET_TR[ruler],
-        planet.sign, planet.degree.toFixed(1), planet.retrograde ? ' \u211E' : '',
+        planet.sign, planet.degree.toFixed(1), planet.retrograde ? ' ℞' : '',
         dateStr, input.burc || '', profilText, input.lang,
       );
     }

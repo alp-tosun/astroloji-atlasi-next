@@ -83,7 +83,7 @@ export function BottomNav({ activeTab, onTabChange, onAuthOpen, onClearTool, isL
 
   const getActiveId = () => {
     if (activeTab === 'sky') return 'sky';
-    if (activeTab === 'daily' || activeTab === 'discover' || activeTab === 'more') return 'tools';
+    if (activeTab === 'daily' || activeTab === 'personal' || activeTab === 'mystical' || activeTab === 'archive') return 'tools';
     return 'home';
   };
 

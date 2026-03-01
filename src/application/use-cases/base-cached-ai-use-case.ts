@@ -56,11 +56,11 @@ export abstract class BaseCachedAIUseCase<TInput> {
       this.cacheRepo.set(this.getCollection(), cacheKey, {
         content,
         createdAt: new Date().toISOString(),
-      }).catch(() => {});
+      }).catch((e) => console.error('[BaseCachedAIUseCase] cache set failed:', e));
 
       if (uid && this.analysisRepo && this.toolId) {
-        this.analysisRepo.saveAnalysis(uid, this.toolId, full.substring(0, 1000)).catch(() => {});
-        this.analysisRepo.updateStreak(uid).catch(() => {});
+        this.analysisRepo.saveAnalysis(uid, this.toolId, full.substring(0, 1000)).catch((e) => console.error('[BaseCachedAIUseCase] saveAnalysis failed:', e));
+        this.analysisRepo.updateStreak(uid).catch((e) => console.error('[BaseCachedAIUseCase] updateStreak failed:', e));
       }
     };
 

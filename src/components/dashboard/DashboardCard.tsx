@@ -6,12 +6,6 @@ import type { ToolId } from '@/types/profile';
 import type { StreakData } from '@/lib/firebase/firestore';
 
 const SIGNS = ['Koc','Boga','Ikizler','Yengec','Aslan','Basak','Terazi','Akrep','Yay','Oglak','Kova','Balik'];
-const SIGNS_TR = ['Koc','Boga','Ikizler','Yengec','Aslan','Basak','Terazi','Akrep','Yay','Oglak','Kova','Balik'];
-const SIGNS_DISPLAY: Record<string, string> = {
-  'Koc': 'Koc', 'Boga': 'Boga', 'Ikizler': 'Ikizler', 'Yengec': 'Yengec',
-  'Aslan': 'Aslan', 'Basak': 'Basak', 'Terazi': 'Terazi', 'Akrep': 'Akrep',
-  'Yay': 'Yay', 'Oglak': 'Oglak', 'Kova': 'Kova', 'Balik': 'Balik',
-};
 
 const MOON_MESSAGES_TR: Record<string, string> = {
   'Koc': 'Enerjik ve atilgan bir gun',

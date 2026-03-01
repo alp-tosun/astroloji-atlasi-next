@@ -238,6 +238,97 @@ export function dailyContentAylikPrompt(burc: string, monthName: string, profilT
   };
 }
 
+// ── Transit Kişisel ──
+export function transitKisiselPrompt(
+  transitSummary: string, gokyuzu: string, moonInfo: string,
+  profilText: string, crossContext?: string, lang?: string,
+): PromptPair {
+  const li = langInstr(lang);
+  return {
+    systemPrompt: `Sen transit astroloji uzmanısın. Natal haritaya göre kişisel transit yorumu yaparsın. Transitlerin günlük yaşama etkisini somut ve anlaşılır dille açıklarsın. Kavuşum, üçgen, sekstil olumlu; kare, karşıt zorlayıcı aspektlerdir. Yaklaşan aspektler gelecek etkiyi, ayrılan aspektler azalan etkiyi gösterir. "İhtimal/yönelim" dilini kullan.${ANTI_INJECTION}`,
+    userPrompt: `Kişisel Transit Analizi:
+
+${transitSummary}
+
+Gökyüzü:
+${gokyuzu}
+Ay: ${moonInfo}
+
+Profil:
+${profilText}
+
+## Genel Enerji Özeti
+## Olumlu Transitler (Fırsatlar)
+## Zorlayıcı Transitler (Dikkat)
+## Yaklaşan Etkiler (Önümüzdeki Günler)
+## Kişisel Tavsiye${crossContext || ''}${li}`,
+    maxTokens: 2000,
+  };
+}
+
+// ── Yıldızname ──
+export function yildizNamePrompt(
+  yildizSummary: string, profilText: string,
+  crossContext?: string, lang?: string,
+): PromptPair {
+  const li = langInstr(lang);
+  return {
+    systemPrompt: `Sen İslam astrolojisi ve Ebced ilmi uzmanısın. Yıldızname geleneğinde isim analizi yaparsın. Mizaç teorisi (sıcak/soğuk, kuru/nemli), gezegen-element ilişkileri ve Türk-İslam kozmolojisine referans ver. Saygılı, bilge ve geleneksel bir dil kullan. Bilimsel kesinlik iddia etme, "gelenek bize şunu söyler" tarzında anlat.${ANTI_INJECTION}`,
+    userPrompt: `Yıldızname Analizi:
+
+${wrapUserData('yildizname', yildizSummary)}
+
+Profil:
+${profilText}
+
+## İsmin Kozmik Değeri
+## Gezegen Yöneticisi ve Etkisi
+## Mizaç (Tabiat) Analizi
+## Karakter ve Yetenekler
+## Uğurlu Unsurlar ve Tavsiyeleri
+## Ruhsal Yönlendirme${crossContext || ''}${li}`,
+    maxTokens: 1800,
+  };
+}
+
+// ── Kristal ──
+export function kristalPrompt(
+  crystalSummary: string, intention: string, moonInfo: string,
+  gokyuzu: string, profilText: string,
+  crossContext?: string, lang?: string,
+): PromptPair {
+  const li = langInstr(lang);
+  const niyetMap: Record<string, string> = {
+    ask: 'Aşk & İlişkiler', kariyer: 'Kariyer & Başarı', saglik: 'Sağlık & İyileşme',
+    koruma: 'Koruma & Arınma', ruhsal: 'Ruhsal Gelişim', genel: 'Genel Denge',
+  };
+  const niyetAd = niyetMap[intention] || intention;
+
+  return {
+    systemPrompt: `Sen kristal terapist ve astrolojik taş uzmanısın. Kristallerin çakra bağlantılarını, kullanım yöntemlerini, ritüel önerilerini ve arınma yöntemlerini bilirsin. Ay fazı ve gezegen pozisyonlarına göre kristal enerjisini değerlendirirsin. Bilimsel kesinlik iddia etme; enerji çalışması perspektifinden anlat.${ANTI_INJECTION}`,
+    userPrompt: `Kişisel Kristal Önerisi:
+Niyet: ${niyetAd}
+
+Eşleşen Kristaller:
+${crystalSummary}
+
+Kozmik Bağlam:
+${gokyuzu}
+Ay: ${moonInfo}
+
+Profil:
+${profilText}
+
+## En Uygun Kristalin
+## Çakra Bağlantıları
+## Kullanım Önerisi (taşıma, meditasyon, yerleştirme)
+## Ritüel Önerisi
+## Arınma ve Şarj Yöntemi
+## Ay Fazına Özel Not${crossContext || ''}${li}`,
+    maxTokens: 1800,
+  };
+}
+
 // ── Ritual ──
 export function ritualPrompt(
   moonPhaseName: string, moonEmoji: string, illumination: number,

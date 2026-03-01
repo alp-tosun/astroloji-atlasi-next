@@ -7,6 +7,7 @@ interface StoryCardProps {
   content: string;
   burc?: string;
   t: (key: string) => string;
+  lang: string;
 }
 
 function extractSummary(content: string, maxLen = 200): string {
@@ -27,14 +28,14 @@ const BURC_SYMBOLS: Record<string, string> = {
   'Yay': '♐', 'Oğlak': '♑', 'Kova': '♒', 'Balık': '♓',
 };
 
-export function StoryCard({ content, burc, t }: StoryCardProps) {
+export function StoryCard({ content, burc, t, lang }: StoryCardProps) {
   const storyRef = useRef<HTMLDivElement>(null);
   const squareRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
 
   const summary = extractSummary(content);
   const burcSymbol = burc ? BURC_SYMBOLS[burc] || '' : '';
-  const today = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+  const today = new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const downloadImage = async (ref: React.RefObject<HTMLDivElement | null>, filename: string) => {
     if (!ref.current) return;
@@ -87,7 +88,7 @@ export function StoryCard({ content, burc, t }: StoryCardProps) {
         {/* Logo header */}
         <div className="flex items-center gap-2 mb-auto">
           <span className="text-xl">🔮</span>
-          <span className="text-white/90 font-bold text-sm tracking-wide">Astroloji Atlası</span>
+          <span className="text-white/90 font-bold text-sm tracking-wide">{t('site_name')}</span>
         </div>
 
         {/* Summary */}

@@ -131,8 +131,13 @@ export function ProfileForm({ t, onToolSelect }: ProfileFormProps) {
               <Input
                 label={t('label_dogum_tarih')}
                 type="date"
+                max={new Date().toISOString().split('T')[0]}
                 value={profile['dogum-tarih'] || ''}
-                onChange={(e) => setField('dogum-tarih', e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val && new Date(val) > new Date()) return;
+                  setField('dogum-tarih', val);
+                }}
               />
 
               <Select

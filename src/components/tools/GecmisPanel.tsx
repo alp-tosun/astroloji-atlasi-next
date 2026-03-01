@@ -13,10 +13,11 @@ const TIP_ICON: Record<string, string> = {
 
 interface GecmisPanelProps {
   t: (k: string) => string;
+  lang: string;
   user: { uid: string } | null;
 }
 
-export function GecmisPanel({ t, user }: GecmisPanelProps) {
+export function GecmisPanel({ t, lang, user }: GecmisPanelProps) {
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -74,7 +75,7 @@ export function GecmisPanel({ t, user }: GecmisPanelProps) {
 
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString('tr-TR', {
+      return new Date(iso).toLocaleDateString(lang === 'en' ? 'en-US' : 'tr-TR', {
         day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
       });
     } catch {

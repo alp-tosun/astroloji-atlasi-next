@@ -31,7 +31,10 @@ export async function checkRateLimit(
   limiter: Ratelimit | null,
   identifier: string
 ): Promise<{ success: boolean; remaining?: number }> {
-  if (!limiter) return { success: true };
+  if (!limiter) {
+    console.warn('[rate-limit] Redis not configured — rate limiting disabled');
+    return { success: true };
+  }
   
   const result = await limiter.limit(identifier);
   return { success: result.success, remaining: result.remaining };

@@ -5,7 +5,16 @@ export async function isPremiumUser(uid: string): Promise<boolean> {
     const doc = await adminDb.collection('users').doc(uid).get();
     if (!doc.exists) return false;
     const data = doc.data();
-    return data?.premium === true || data?.subscription === 'premium' || data?.isPremium === true;
+    const hasPremium = data?.premium === true || data?.subscription === 'premium' || data?.isPremium === true;
+    if (!hasPremium) return false;
+    // Check expiration if set
+    if (data?.premiumExpiresAt) {
+      const expiresAt = typeof data.premiumExpiresAt === 'number'
+        ? data.premiumExpiresAt
+        : new Date(data.premiumExpiresAt).getTime();
+      if (expiresAt < Date.now()) return false;
+    }
+    return true;
   } catch {
     return false;
   }

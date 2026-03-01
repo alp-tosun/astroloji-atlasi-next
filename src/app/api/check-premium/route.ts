@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { withRateLimit } from '@/lib/api-middleware';
 
 export async function GET(req: NextRequest) {
+  const rateLimitResponse = await withRateLimit(req, 'data');
+  if (rateLimitResponse) return rateLimitResponse;
+
   const authHeader = req.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -15,7 +19,7 @@ export async function GET(req: NextRequest) {
     const userDoc = await adminDb.collection('users').doc(uid).get();
 
     if (!userDoc.exists) {
-      return NextResponse.json({ isPremium: false });
+      return NextResponse.json({ ok: true, isPremium: false });
     }
 
     const data = userDoc.data();
@@ -25,11 +29,11 @@ export async function GET(req: NextRequest) {
     if (isPremium && data?.premiumExpiresAt) {
       const expiresAt = new Date(data.premiumExpiresAt);
       if (expiresAt < new Date()) {
-        return NextResponse.json({ isPremium: false });
+        return NextResponse.json({ ok: true, isPremium: false });
       }
     }
 
-    return NextResponse.json({ isPremium });
+    return NextResponse.json({ ok: true, isPremium });
   } catch {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }

@@ -3,13 +3,26 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Users can only read/write their own profile
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-      
-      // Analyses subcollection: create-only (immutable), own uid only
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // Write allowed but premium-related fields are protected (only server can set them)
+      allow write: if request.auth != null && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['premium', 'isPremium', 'subscription', 'premiumExpiresAt', 'premiumSource']);
+      // Allow create for new users (no existing resource to diff against)
+      allow create: if request.auth != null && request.auth.uid == uid
+        && !request.resource.data.keys()
+            .hasAny(['premium', 'isPremium', 'subscription', 'premiumExpiresAt', 'premiumSource']);
+
+      // Analyses subcollection
       match /analizler/{analysisId} {
         allow read: if request.auth != null && request.auth.uid == uid;
         allow create: if request.auth != null && request.auth.uid == uid;
-        // No update or delete allowed
+        allow delete: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // FCM tokens subcollection
+      match /fcmTokens/{tokenId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
       }
     }
     

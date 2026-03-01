@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 import { apiError, streamResponse } from '@/lib/api-helpers';
 import { withRateLimit, verifyAuth, requirePremium } from '@/lib/api-middleware';
 import { useCases } from '@/application/di/container';
-import type { Profile } from '@/types/profile';
+import { dailyContentSchema } from '@/lib/validation/schemas';
 
 type ContentType = 'gunun-karti' | 'haftalik' | 'aylik';
 
@@ -10,17 +11,19 @@ export async function POST(req: NextRequest) {
   const rateLimitResponse = await withRateLimit(req, 'ai');
   if (rateLimitResponse) return rateLimitResponse;
 
-  let body: { type?: string; lang?: string; burc?: string; profil?: Profile; uid?: string };
+  let body: ReturnType<typeof dailyContentSchema.parse>;
   try {
-    body = await req.json();
-  } catch {
+    const raw = await req.json();
+    body = dailyContentSchema.parse(raw);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      const msg = e.errors.map((err) => err.message).join(', ');
+      return apiError(msg, 400);
+    }
     return apiError('Geçersiz istek.', 400);
   }
 
   const type = body.type as ContentType;
-  if (!['gunun-karti', 'haftalik', 'aylik'].includes(type)) {
-    return apiError('Geçersiz içerik tipi.', 400);
-  }
 
   const authResult = await verifyAuth(req, body.uid);
   if ('response' in authResult) return authResult.response;

@@ -6,15 +6,15 @@ import { ResultBox } from '@/components/analysis/ResultBox';
 import { Button } from '@/components/ui/Button';
 import { ElementBalance } from '@/components/chart/ElementBalance';
 
-import { GunlukPanel } from '@/components/tools/GunlukPanel';
-import { UyumPanel } from '@/components/tools/UyumPanel';
-import { ElPanel } from '@/components/tools/ElPanel';
-import { NumerologiPanel } from '@/components/tools/NumerologiPanel';
-import { RuyaPanel } from '@/components/tools/RuyaPanel';
-import { HoraryPanel } from '@/components/tools/HoraryPanel';
-import { KozmikPanel } from '@/components/tools/KozmikPanel';
-import { DailyContentPanel } from '@/components/tools/DailyContentPanel';
-import { GecmisPanel } from '@/components/tools/GecmisPanel';
+const GunlukPanel = dynamic(() => import('@/components/tools/GunlukPanel').then(m => ({ default: m.GunlukPanel })), { ssr: false, loading: PanelLoader });
+const UyumPanel = dynamic(() => import('@/components/tools/UyumPanel').then(m => ({ default: m.UyumPanel })), { ssr: false, loading: PanelLoader });
+const ElPanel = dynamic(() => import('@/components/tools/ElPanel').then(m => ({ default: m.ElPanel })), { ssr: false, loading: PanelLoader });
+const NumerologiPanel = dynamic(() => import('@/components/tools/NumerologiPanel').then(m => ({ default: m.NumerologiPanel })), { ssr: false, loading: PanelLoader });
+const RuyaPanel = dynamic(() => import('@/components/tools/RuyaPanel').then(m => ({ default: m.RuyaPanel })), { ssr: false, loading: PanelLoader });
+const HoraryPanel = dynamic(() => import('@/components/tools/HoraryPanel').then(m => ({ default: m.HoraryPanel })), { ssr: false, loading: PanelLoader });
+const KozmikPanel = dynamic(() => import('@/components/tools/KozmikPanel').then(m => ({ default: m.KozmikPanel })), { ssr: false, loading: PanelLoader });
+const DailyContentPanel = dynamic(() => import('@/components/tools/DailyContentPanel').then(m => ({ default: m.DailyContentPanel })), { ssr: false, loading: PanelLoader });
+const GecmisPanel = dynamic(() => import('@/components/tools/GecmisPanel').then(m => ({ default: m.GecmisPanel })), { ssr: false, loading: PanelLoader });
 
 import type { ToolId, Profile } from '@/types/profile';
 import type { CosmicEnergy, NumerologyNumbers } from '@/types/analysis';
@@ -34,6 +34,9 @@ const LunarCalendarPanel = dynamic(() => import('@/components/tools/LunarCalenda
 const PlanetaryHoursPanel = dynamic(() => import('@/components/tools/PlanetaryHoursPanel').then(m => ({ default: m.PlanetaryHoursPanel })), { ssr: false, loading: PanelLoader });
 const RitualPanel = dynamic(() => import('@/components/tools/RitualPanel').then(m => ({ default: m.RitualPanel })), { ssr: false, loading: PanelLoader });
 const TarotPanel = dynamic(() => import('@/components/tools/TarotPanel').then(m => ({ default: m.TarotPanel })), { ssr: false, loading: PanelLoader });
+const TransitKisiselPanel = dynamic(() => import('@/components/tools/TransitKisiselPanel').then(m => ({ default: m.TransitKisiselPanel })), { ssr: false, loading: PanelLoader });
+const YildizNamePanel = dynamic(() => import('@/components/tools/YildizNamePanel').then(m => ({ default: m.YildizNamePanel })), { ssr: false, loading: PanelLoader });
+const KristalPanel = dynamic(() => import('@/components/tools/KristalPanel').then(m => ({ default: m.KristalPanel })), { ssr: false, loading: PanelLoader });
 
 interface ToolPanelRendererProps {
   activeTool: ToolId | null;
@@ -164,10 +167,10 @@ export function ToolPanelRenderer({
       return <HoraryPanel t={t} callApi={callApi} result={result} resultLoading={resultLoading} streaming={streaming} />;
 
     case 'kosm':
-      return <KozmikPanel t={t} callApi={callApi} result={result} resultLoading={resultLoading} streaming={streaming} cosmicEnergy={cosmicEnergy} setCosmicEnergy={setCosmicEnergy} profile={profile} />;
+      return <KozmikPanel t={t} lang={lang} callApi={callApi} result={result} resultLoading={resultLoading} streaming={streaming} cosmicEnergy={cosmicEnergy} setCosmicEnergy={setCosmicEnergy} profile={profile} />;
 
     case 'gecmis':
-      return <GecmisPanel key={Date.now()} t={t} user={user} />;
+      return <GecmisPanel key={Date.now()} t={t} lang={lang} user={user} />;
 
     case 'gezegen':
       return (
@@ -176,12 +179,14 @@ export function ToolPanelRenderer({
           <Button
             onClick={() => {
               const now = new Date();
-              const gunAdlariTR = ['Pazar', 'Pazartesi', 'Sal\u0131', '\u00c7ar\u015famba', 'Per\u015fembe', 'Cuma', 'Cumartesi'];
-              callApi('/api/cosmic', { tarih: now.toLocaleDateString('tr-TR'), gun: gunAdlariTR[now.getDay()], web_data: 'Gezegen konumları panelden gönderildi' });
+              const gunAdlari = lang === 'en'
+                ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                : ['Pazar', 'Pazartesi', 'Sal\u0131', '\u00c7ar\u015famba', 'Per\u015fembe', 'Cuma', 'Cumartesi'];
+              callApi('/api/cosmic', { tarih: now.toLocaleDateString(lang === 'en' ? 'en-US' : 'tr-TR'), gun: gunAdlari[now.getDay()], web_data: 'Gezegen konumları panelden gönderildi' });
             }}
             loading={resultLoading}
           >
-            {t('btn_gezegen_yorumla') !== 'btn_gezegen_yorumla' ? t('btn_gezegen_yorumla') : 'Yorumla'}
+            {t('btn_gezegen_yorumla')}
           </Button>
           <ResultBox content={result} loading={resultLoading} streaming={streaming} />
         </div>
@@ -210,6 +215,15 @@ export function ToolPanelRenderer({
 
     case 'tarot':
       return <TarotPanel t={t} callApi={callApi} result={result} resultLoading={resultLoading} streaming={streaming} lang={lang} />;
+
+    case 'transit-kisisel':
+      return <TransitKisiselPanel t={t} callApi={callApi} result={result} resultLoading={resultLoading} streaming={streaming} profile={profile} />;
+
+    case 'yildizname':
+      return <YildizNamePanel t={t} callApi={callApi} result={result} resultLoading={resultLoading} streaming={streaming} profile={profile} />;
+
+    case 'kristal':
+      return <KristalPanel t={t} callApi={callApi} result={result} resultLoading={resultLoading} streaming={streaming} profile={profile} />;
 
     default:
       return null;

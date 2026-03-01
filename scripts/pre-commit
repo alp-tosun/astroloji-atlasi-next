@@ -1,0 +1,15 @@
+#!/bin/sh
+# Pre-commit hook: .env dosyalarının commit edilmesini engeller
+
+ENV_FILES=$(git diff --cached --name-only | grep -E '\.env(\..+)?$' | grep -v '\.env\.example$')
+
+if [ -n "$ENV_FILES" ]; then
+  echo "HATA: .env dosyaları commit edilemez!"
+  echo ""
+  echo "Engellenen dosyalar:"
+  echo "$ENV_FILES"
+  echo ""
+  echo "Bu dosyaları staging'den kaldırın:"
+  echo "  git reset HEAD $ENV_FILES"
+  exit 1
+fi

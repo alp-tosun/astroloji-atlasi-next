@@ -24,8 +24,7 @@ export async function updateStreak(uid: string) {
     const snap = await userRef.get();
     const data = snap.data() || {};
 
-    const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
 
     const lastActive: string = data.lastActiveDate || '';
     const currentStreak: number = data.streak || 0;
@@ -40,10 +39,10 @@ export async function updateStreak(uid: string) {
       return;
     }
 
-    // Check if yesterday
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+    // Check if yesterday (derive from todayStr to stay in Istanbul timezone)
+    const [y, m, d] = todayStr.split('-').map(Number);
+    const yesterdayDate = new Date(y, m - 1, d - 1);
+    const yesterdayStr = yesterdayDate.toLocaleDateString('sv-SE');
 
     if (lastActive === yesterdayStr) {
       newStreak = currentStreak + 1;

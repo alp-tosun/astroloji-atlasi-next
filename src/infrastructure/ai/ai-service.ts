@@ -6,7 +6,7 @@ export class AIServiceImpl implements IAIService {
     return chatStream(system, user, undefined, maxTokens);
   }
 
-  async chatWithVisionStream(imageBase64: string, prompt: string, maxTokens = 800): Promise<AIStream> {
-    return chatWithVisionStream(imageBase64, prompt, undefined, maxTokens);
+  async chatWithVisionStream(imageBase64: string, prompt: string, maxTokens = 800, systemPrompt?: string): Promise<AIStream> {
+    return chatWithVisionStream(imageBase64, prompt, undefined, maxTokens, systemPrompt);
   }
 }

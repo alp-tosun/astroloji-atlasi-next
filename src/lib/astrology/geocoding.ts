@@ -122,15 +122,41 @@ export interface GeoResult {
   displayName: string;
 }
 
+// ---------------------------------------------------------------------------
+// In-memory LRU cache for Nominatim results (max 100 entries)
+// ---------------------------------------------------------------------------
+const NOMINATIM_CACHE_MAX = 100;
+const nominatimCache = new Map<string, GeoResult | null>();
+
+/**
+ * Evict the oldest entry when the cache exceeds its maximum size.
+ * Map iteration order is insertion order, so the first key is the oldest.
+ */
+function ensureCacheLimit(): void {
+  while (nominatimCache.size > NOMINATIM_CACHE_MAX) {
+    const firstKey = nominatimCache.keys().next().value as string;
+    nominatimCache.delete(firstKey);
+  }
+}
+
 export async function geocode(place: string): Promise<GeoResult | null> {
   const normalized = place.toLowerCase().trim();
-  
+
   // Check Turkish city cache first
   if (TURKISH_CITIES[normalized]) {
     const { lat, lng } = TURKISH_CITIES[normalized];
     return { lat, lng, displayName: place };
   }
-  
+
+  // Check in-memory LRU cache for previous Nominatim lookups
+  if (nominatimCache.has(normalized)) {
+    // Move to end (most-recently-used) by re-inserting
+    const cached = nominatimCache.get(normalized)!;
+    nominatimCache.delete(normalized);
+    nominatimCache.set(normalized, cached);
+    return cached;
+  }
+
   // Fallback to Nominatim API
   try {
     const res = await fetch(
@@ -139,15 +165,22 @@ export async function geocode(place: string): Promise<GeoResult | null> {
     );
     const data = await res.json();
     if (data.length > 0) {
-      return {
+      const result: GeoResult = {
         lat: parseFloat(data[0].lat),
         lng: parseFloat(data[0].lon),
         displayName: data[0].display_name,
       };
+      nominatimCache.set(normalized, result);
+      ensureCacheLimit();
+      return result;
     }
   } catch {
     // Nominatim failed
   }
-  
+
+  // Cache negative results too to avoid repeated failing requests
+  nominatimCache.set(normalized, null);
+  ensureCacheLimit();
+
   return null;
 }

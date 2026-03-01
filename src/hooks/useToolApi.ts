@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import type { User } from 'firebase/auth';
 import type { ToolId, Profile } from '@/types/profile';
 
@@ -31,6 +31,15 @@ export function useToolApi({
   const activeToolRef = useRef<ToolId | null>(null);
   activeToolRef.current = activeTool;
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Abort in-flight request on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   // Derived state for current tool
   const result = activeTool ? (results[activeTool] || '') : '';
   const resultLoading = loadingTool === activeTool;
@@ -38,6 +47,11 @@ export function useToolApi({
 
   const callApi = useCallback(
     async (endpoint: string, body: Record<string, unknown>) => {
+      // Abort any previous in-flight request
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       const tool = activeToolRef.current;
       if (!tool) return;
 
@@ -48,19 +62,47 @@ export function useToolApi({
       const crossContext = getCrossContext(tool);
 
       try {
+        // Offline detection
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          setResults((prev) => ({ ...prev, [tool]: '\u274c İnternet bağlantısı bulunamadı. Lütfen bağlantınızı kontrol edin.' }));
+          setLoadingTool(null);
+          return;
+        }
+
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (user) {
           try {
-            const token = await user.getIdToken();
+            const token = await user.getIdToken(true);
             headers['Authorization'] = `Bearer ${token}`;
           } catch {}
         }
 
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ ...body, profil: profile, lang, uid: user?.uid, crossContext }),
-        });
+        // Timeout: abort after 60 seconds
+        const timeoutId = setTimeout(() => controller.abort(), 60_000);
+
+        const requestBody = JSON.stringify({ ...body, profil: profile, lang, uid: user?.uid, crossContext });
+
+        let res: Response;
+        try {
+          res = await fetch(endpoint, {
+            method: 'POST',
+            headers,
+            body: requestBody,
+            signal: controller.signal,
+          });
+        } catch (fetchErr) {
+          // Retry once on network error (not abort)
+          if (controller.signal.aborted) throw fetchErr;
+          await new Promise((r) => setTimeout(r, 1500));
+          res = await fetch(endpoint, {
+            method: 'POST',
+            headers,
+            body: requestBody,
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
 
         if (res.status === 401) {
           setResults((prev) => ({ ...prev, [tool]: '\u274c Oturum süresi dolmuş. Lütfen tekrar giriş yapın.' }));
