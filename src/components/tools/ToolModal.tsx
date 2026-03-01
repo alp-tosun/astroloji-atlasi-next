@@ -48,12 +48,17 @@ export function ToolModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-[overlayIn_0.15s_ease-out]"
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm md:p-4 animate-[overlayIn_0.15s_ease-out]"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl border border-border bg-surface shadow-2xl animate-[modalIn_0.25s_ease-out]">
+      <div className="w-full max-h-[calc(100vh-48px)] md:max-w-2xl md:max-h-[85vh] flex flex-col rounded-t-2xl md:rounded-2xl border border-border bg-surface shadow-2xl animate-[sheetSlideUp_0.3s_ease-out] md:animate-[modalIn_0.25s_ease-out]">
+        {/* Mobile grip bar */}
+        <div className="flex justify-center pt-2 pb-0 md:hidden shrink-0">
+          <div className="w-10 h-1 bg-border rounded-full" />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2 min-w-0">

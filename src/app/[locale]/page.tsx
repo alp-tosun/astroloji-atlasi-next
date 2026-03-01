@@ -7,7 +7,6 @@ import { AuthModal } from '@/components/auth/AuthModal';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ToolGrid, CategoryTabs, TOOLS } from '@/components/tools/ToolGrid';
 import { ToolModal } from '@/components/tools/ToolModal';
-import { FeaturedTools } from '@/components/tools/FeaturedTools';
 import { LivePlanetBand } from '@/components/planet/LivePlanetBand';
 import { ShareModal } from '@/components/analysis/ShareModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,7 +17,7 @@ import { useSettingsStore } from '@/stores/settings-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { usePremiumStore } from '@/stores/premium-store';
 import { useCrossToolStore } from '@/stores/cross-tool-store';
-import { useToastStore } from '@/stores/toast-store';
+
 import type { ToolId } from '@/types/profile';
 import type { CosmicEnergy, NumerologyNumbers } from '@/types/analysis';
 import type { Messages } from '@/types/i18n';
@@ -29,6 +28,7 @@ import { ProfileBanner } from '@/components/profile/ProfileBanner';
 import { DashboardCard } from '@/components/dashboard/DashboardCard';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { ToolPanelRenderer } from '@/components/tools/ToolPanelRenderer';
+import { PaywallModal } from '@/components/premium/PaywallModal';
 
 // i18n
 import trMessages from '@/messages/tr.json';
@@ -46,6 +46,7 @@ export default function Home() {
   const [streakData, setStreakData] = useState<StreakData | null>(null);
   const [lastAnalysis, setLastAnalysis] = useState<{ tip: string; tarih: string } | null>(null);
   const [activeTab, setActiveTab] = useState('daily');
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   // Auth
   useAuth();
@@ -57,7 +58,6 @@ export default function Home() {
   const addCrossResult = useCrossToolStore((s) => s.addResult);
   const getCrossContext = useCrossToolStore((s) => s.getContext);
   const isPremium = usePremiumStore((s) => s.isPremium);
-  const addToast = useToastStore((s) => s.addToast);
 
   // i18n
   const currentMessages = useMemo(() => messages[lang] || messages.tr, [lang]);
@@ -72,7 +72,7 @@ export default function Home() {
 
   // Tool API hook
   const onAuthRequired = useCallback(() => setAuthOpen(true), []);
-  const { activeTool, setActiveTool, result, resultLoading, streaming, callApi } = useToolApi({
+  const { activeTool, setActiveTool, result, resultLoading, streaming, error: toolError, clearError: clearToolError, callApi } = useToolApi({
     user,
     profile,
     lang,
@@ -100,7 +100,7 @@ export default function Home() {
     if (localDone === 'true') return;
     getOnboardingStatus(user.uid).then((done) => {
       if (!done) setOnboardingOpen(true);
-    }).catch(() => {});
+    }).catch((err) => console.error('[Onboarding] Status fetch error:', err));
   }, [user]);
 
   // Fetch streak data and last analysis when user logs in
@@ -141,7 +141,7 @@ export default function Home() {
     const PREMIUM_TOOLS = ['uyum', 'num', 'ruya', 'el', 'kosm', 'horar', 'haftalik', 'aylik', 'tarot'];
     if (PREMIUM_TOOLS.includes(id)) {
       if (!user) { setAuthOpen(true); return; }
-      if (!isPremium) { addToast(t('premium_required'), 'warning'); return; }
+      if (!isPremium) { setPaywallOpen(true); return; }
     }
     import('@/lib/capacitor/haptics').then(({ hapticLight }) => hapticLight()).catch(() => {});
     setActiveTool(id);
@@ -157,6 +157,7 @@ export default function Home() {
       <Header lang={lang} onLangChange={changeLang} onAuthOpen={() => setAuthOpen(true)} onToolSelect={handleToolSelect} t={t} streak={streakData?.streak} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} t={t} lang={lang} />
       <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} content={result} t={t} lang={lang} burc={profile.burc} />
+      <PaywallModal open={paywallOpen} onClose={() => setPaywallOpen(false)} onPurchased={() => usePremiumStore.getState().setPremium(true)} t={t} lang={lang} />
       <ToolModal
         open={!!activeTool}
         onClose={() => { setActiveTool(null); }}
@@ -173,6 +174,8 @@ export default function Home() {
           result={result}
           resultLoading={resultLoading}
           streaming={streaming}
+          error={toolError}
+          onRetry={clearToolError}
           profile={profile}
           lang={lang}
           user={user}
@@ -185,10 +188,7 @@ export default function Home() {
 
       <OnboardingTour open={onboardingOpen} onClose={handleOnboardingClose} t={t} />
 
-      <main id="main-content" className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 pt-6 pb-20 md:pb-12 space-y-6">
-        <div data-tour="profile">
-          <ProfileForm t={t} onToolSelect={handleToolSelect} />
-        </div>
+      <main id="main-content" className="relative z-10 mx-auto max-w-lg px-3 pt-4 pb-24 space-y-5">
         {user && (
           <DashboardCard
             name={profile.ad || user.displayName || user.email?.split('@')[0] || ''}
@@ -200,13 +200,14 @@ export default function Home() {
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4 items-start">
-          <CategoryTabs activeTab={activeTab} onTabChange={setActiveTab} t={t} />
-          <FeaturedTools onSelect={handleToolSelect} t={t} />
+        <div data-tour="profile">
+          <ProfileForm t={t} onToolSelect={handleToolSelect} />
         </div>
 
+        <CategoryTabs activeTab={activeTab} onTabChange={setActiveTab} t={t} />
+
         <div data-tour="tools">
-          <ToolGrid activeTool={activeTool} activeTab={activeTab} onSelect={handleToolSelect} t={t} />
+          <ToolGrid activeTool={activeTool} onSelect={handleToolSelect} onActiveTabChange={setActiveTab} t={t} />
         </div>
 
         <ProfileBanner score={signalScore} t={t} />
@@ -214,7 +215,6 @@ export default function Home() {
 
       <BottomNav
         activeTab={activeTab}
-        onTabChange={setActiveTab}
         onAuthOpen={() => setAuthOpen(true)}
         onClearTool={() => { setActiveTool(null); }}
         isLoggedIn={!!user}

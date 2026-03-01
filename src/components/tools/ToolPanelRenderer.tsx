@@ -45,6 +45,8 @@ interface ToolPanelRendererProps {
   result: string;
   resultLoading: boolean;
   streaming: boolean;
+  error?: string;
+  onRetry?: () => void;
   profile: Profile;
   lang: string;
   user: User | null;
@@ -61,6 +63,8 @@ export function ToolPanelRenderer({
   result,
   resultLoading,
   streaming,
+  error,
+  onRetry,
   profile,
   lang,
   user,
@@ -82,7 +86,7 @@ export function ToolPanelRenderer({
           <Button onClick={() => callApi('/api/burc', {})} loading={resultLoading}>
             {t('btn_burc_analiz')}
           </Button>
-          <ResultBox content={result} loading={resultLoading} streaming={streaming} />
+          <ResultBox content={result} loading={resultLoading} streaming={streaming} error={error} onRetry={onRetry} />
         </div>
       );
 
@@ -119,7 +123,7 @@ export function ToolPanelRenderer({
           >
             {t('btn_yuk_bul')}
           </Button>
-          <ResultBox content={result} loading={resultLoading} streaming={streaming} />
+          <ResultBox content={result} loading={resultLoading} streaming={streaming} error={error} onRetry={onRetry} />
         </div>
       );
 
@@ -150,7 +154,7 @@ export function ToolPanelRenderer({
           >
             {t('btn_ay_burc_bul')}
           </Button>
-          <ResultBox content={result} loading={resultLoading} streaming={streaming} />
+          <ResultBox content={result} loading={resultLoading} streaming={streaming} error={error} onRetry={onRetry} />
         </div>
       );
 
@@ -188,7 +192,7 @@ export function ToolPanelRenderer({
           >
             {t('btn_gezegen_yorumla')}
           </Button>
-          <ResultBox content={result} loading={resultLoading} streaming={streaming} />
+          <ResultBox content={result} loading={resultLoading} streaming={streaming} error={error} onRetry={onRetry} />
         </div>
       );
 

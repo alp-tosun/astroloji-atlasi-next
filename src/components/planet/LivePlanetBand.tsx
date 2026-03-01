@@ -17,6 +17,9 @@ const PLANET_DESCRIPTIONS: Record<string, string> = {
   'Güneş': 'Güneş, kimliğinizi, yaşam enerjinizi ve benlik bilincinizi temsil eder. Bulunduğu burç, genel enerji akışını ve odak noktanızı belirler.',
   'Mars': 'Mars, eylem gücünüzü, motivasyonunuzu, cesaretinizi ve fiziksel enerjinizi yönetir. Bulunduğu burç, nasıl harekete geçtiğinizi etkiler.',
   'Merkür': 'Merkür, iletişimi, düşünce yapınızı, öğrenmeyi ve bilgi alışverişini yönetir. Bulunduğu burç, nasıl düşündüğünüzü ve konuştuğunuzu etkiler.',
+  'Venüs': 'Venüs, aşkı, güzelliği, değerleri ve ilişkilerinizi yönetir. Bulunduğu burç, nasıl sevdiğinizi ve neye değer verdiğinizi etkiler.',
+  'Jüpiter': 'Jüpiter, şansı, büyümeyi, bilgeliği ve genişlemeyi temsil eder. Bulunduğu burç, hangi alanda bolluğa ve gelişime açık olduğunuzu gösterir.',
+  'Satürn': 'Satürn, disiplini, sorumluluğu, sınırları ve olgunlaşmayı yönetir. Bulunduğu burç, hangi alanda dersler ve yapılanma yaşadığınızı gösterir.',
 };
 
 const PLANET_SIGN_MEANINGS: Record<string, Record<string, string>> = {
@@ -76,6 +79,48 @@ const PLANET_SIGN_MEANINGS: Record<string, Record<string, string>> = {
     'Kova': 'Reform enerjisi ve kolektif hareket. Toplumsal projeler için motivasyon yüksek.',
     'Balık': 'Sezgisel hareket ve şefkatli güç. Yardımseverlik ve empati enerjisi güçlü.',
   },
+  'Venüs': {
+    'Koç': 'Aşkta tutkulu ve hızlı adımlar. Romantik ilişkilerde cesaret yüksek.',
+    'Boğa': 'Aşkta sadakat ve duyusal zevkler. Güzellik ve konfor ön planda.',
+    'İkizler': 'Aşkta eğlence ve zihinsel bağ. Sosyal çekicilik artıyor.',
+    'Yengeç': 'Aşkta derin bağlanma ve koruma. Duygusal yakınlık ihtiyacı güçlü.',
+    'Aslan': 'Aşkta cömertlik ve romantizm. Gösterişli jestler ve ilgi beklentisi.',
+    'Başak': 'Aşkta özenli ve pratik yaklaşım. İlişkilerde detaylara dikkat.',
+    'Terazi': 'Aşkta uyum ve estetik zirvededir. İlişkilerde denge arayışı güçlü.',
+    'Akrep': 'Aşkta yoğunluk ve tutku. Derin duygusal bağlar kurma zamanı.',
+    'Yay': 'Aşkta özgürlük ve macera. Yeni deneyimlere açık bir dönem.',
+    'Oğlak': 'Aşkta ciddiyet ve bağlılık. Uzun vadeli ilişki planları için uygun.',
+    'Kova': 'Aşkta özgünlük ve dostça bağ. Alışılmadık ilişki dinamikleri.',
+    'Balık': 'Aşkta romantizm ve adanmışlık. Ruhsal bağlar güçleniyor.',
+  },
+  'Jüpiter': {
+    'Koç': 'Cesaret ve girişimcilik genişler. Yeni projeler için şans dönemi.',
+    'Boğa': 'Maddi bolluk ve büyüme dönemi. Finansal fırsatlar artıyor.',
+    'İkizler': 'Öğrenme ve iletişimde şans. Eğitim ve seyahat fırsatları.',
+    'Yengeç': 'Aile ve duygusal zenginlik. Ev ve yuva konularında bereket.',
+    'Aslan': 'Yaratıcılık ve şöhret şansı. Kendinizi ifade etme fırsatları.',
+    'Başak': 'Sağlık ve iş hayatında bereket. Detaylı çalışmalar ödüllendiriliyor.',
+    'Terazi': 'İlişkilerde ve hukukta şans. Ortaklıklar için verimli dönem.',
+    'Akrep': 'Derin dönüşümlerden kazanç. Miras ve ortak kaynaklar artıyor.',
+    'Yay': 'Şans ve genişleme en güçlü hali. Ufkunu genişletme zamanı.',
+    'Oğlak': 'Kariyer ve otoritede büyüme. Toplumsal statü yükseliyor.',
+    'Kova': 'Yenilik ve insanlık için büyüme. Toplumsal projeler destekleniyor.',
+    'Balık': 'Ruhsal büyüme ve şefkat. Spiritüel gelişim için ideal dönem.',
+  },
+  'Satürn': {
+    'Koç': 'Sabır ve disiplin dersleri. Liderlik sorumluluğu artıyor.',
+    'Boğa': 'Maddi sorumluluk ve yapılanma. Finansal disiplin gerekiyor.',
+    'İkizler': 'İletişimde ciddiyet ve derinlik. Düşüncelerinizi olgunlaştırma zamanı.',
+    'Yengeç': 'Duygusal olgunlaşma zamanı. Aile sorumluluklarıyla yüzleşme.',
+    'Aslan': 'Ego sınavları ve liderlik sorumlulukları. Alçakgönüllülük dersleri.',
+    'Başak': 'Çalışma disiplini ve sağlık odağı. Rutin ve düzen kurma zamanı.',
+    'Terazi': 'İlişkilerde sorumluluk ve olgunluk. Bağlılık sınavları.',
+    'Akrep': 'Derin korkularla yüzleşme. İçsel dönüşüm ve güç kazanma.',
+    'Yay': 'İnançlarda yapılanma ve sınırlama. Felsefi olgunlaşma.',
+    'Oğlak': 'En güçlü hali, kariyer yapılandırması. Uzun vadeli başarı temelleri.',
+    'Kova': 'Toplumsal sorumluluk ve reform. Kolektif bilinç gelişimi.',
+    'Balık': 'Ruhsal sınırlar ve merhamet dersleri. İçsel huzur arayışı.',
+  },
 };
 
 const SIGNS = ['Koç','Boğa','İkizler','Yengeç','Aslan','Başak','Terazi','Akrep','Yay','Oğlak','Kova','Balık'];
@@ -122,8 +167,11 @@ function computePlanets(date: Date): PlanetInfo[] {
   const bodies = [
     { body: 'Moon', name: 'Ay', icon: '🌙' },
     { body: 'Sun', name: 'Güneş', icon: '☀️' },
-    { body: 'Mars', name: 'Mars', icon: '♂️' },
     { body: 'Mercury', name: 'Merkür', icon: '☿' },
+    { body: 'Venus', name: 'Venüs', icon: '♀️' },
+    { body: 'Mars', name: 'Mars', icon: '♂️' },
+    { body: 'Jupiter', name: 'Jüpiter', icon: '♃' },
+    { body: 'Saturn', name: 'Satürn', icon: '♄' },
   ];
 
   return bodies.map(({ body, name, icon }) => {
@@ -174,71 +222,92 @@ export function LivePlanetBand({ t, lang }: LivePlanetBandProps) {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showInfo]);
 
-  if (!planets) return null;
+  if (!planets) {
+    return (
+      <div className="sticky top-0 z-50 border-b border-border/40 bg-bg/90 backdrop-blur-xl">
+        <div className="mx-auto max-w-lg px-3">
+          <div className="py-2 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="skeleton-line w-28 h-3" />
+              <div className="skeleton-line w-24 h-5 rounded-full" />
+            </div>
+            <div className="flex flex-wrap justify-center gap-1">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg bg-card/30 border border-border/30 min-w-[60px]">
+                  <div className="skeleton-line w-5 h-5 rounded-full" />
+                  <div className="skeleton-line w-8 h-2 mt-0.5" />
+                  <div className="skeleton-line w-10 h-2.5" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const mercury = planets.find((p) => p.name === 'Merkür');
   const hasRetrograde = planets.some((p) => p.retrograde);
 
   return (
     <div data-tour="planet-band" className="sticky top-0 z-50 border-b border-border/40 bg-bg/90 backdrop-blur-xl" ref={infoRef}>
-      <div className="mx-auto max-w-5xl px-4">
-        <div className="flex items-center gap-1 overflow-x-auto py-2 scrollbar-hide">
-          {/* Date */}
-          <span className="shrink-0 text-xs text-muted mr-2">
-            📅 {dateStr}
-          </span>
-
-          <span className="shrink-0 w-px h-4 bg-border/60" />
-
-          {/* Planets */}
-          {planets.map((p) => (
-            <div
-              key={p.name}
-              className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs"
-            >
-              <span>{p.icon}</span>
-              <span className="text-muted">{p.name}</span>
-              <span className="font-medium text-text">{p.signIcon} {p.sign}</span>
-              {p.retrograde && (
-                <span className="text-[10px] text-red-400 font-semibold ml-0.5">℞</span>
+      <div className="mx-auto max-w-lg px-3">
+        <div className="py-2 space-y-1.5">
+          {/* Top row: date + mercury status + info */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted">
+              📅 {dateStr}
+            </span>
+            <div className="flex items-center gap-1.5">
+              {mercury && (
+                <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                  mercury.retrograde
+                    ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                    : 'bg-green-500/10 text-green-400 border border-green-500/20'
+                }`}>
+                  <span>{mercury.retrograde ? '↩️' : '▶️'}</span>
+                  <span>{mercury.retrograde ? t('merkur_retro') : t('merkur_duz')}</span>
+                </div>
               )}
+              <button
+                onClick={() => setShowInfo(!showInfo)}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/10 hover:bg-accent/20 text-accent transition-colors text-[11px] font-medium border border-accent/20"
+                aria-label={lang === 'en' ? 'Planet info' : 'Gezegen bilgisi'}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{lang === 'en' ? 'What does this mean?' : 'Bu ne anlama geliyor?'}</span>
+              </button>
             </div>
-          ))}
+          </div>
 
-          <span className="shrink-0 w-px h-4 bg-border/60" />
-
-          {/* Mercury Status */}
-          {mercury && (
-            <div className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-              mercury.retrograde
-                ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                : 'bg-green-500/10 text-green-400 border border-green-500/20'
-            }`}>
-              <span>{mercury.retrograde ? '↩️' : '▶️'}</span>
-              <span>{mercury.retrograde ? t('merkur_retro') : t('merkur_duz')}</span>
-            </div>
-          )}
-
-          <span className="shrink-0 w-px h-4 bg-border/60" />
-
-          {/* Info Button */}
-          <button
-            onClick={() => setShowInfo(!showInfo)}
-            className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent/10 hover:bg-accent/20 text-accent transition-colors text-[11px] font-medium whitespace-nowrap border border-accent/20"
-            aria-label={lang === 'en' ? 'Planet info' : 'Gezegen bilgisi'}
-          >
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{lang === 'en' ? 'What does this mean?' : 'Bu ne anlama geliyor?'}</span>
-          </button>
+          {/* Planets — flex wrap for 7 items */}
+          <div className="flex flex-wrap justify-center gap-1">
+            {planets.map((p) => (
+              <div
+                key={p.name}
+                className="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg bg-card/30 border border-border/30 min-w-[60px]"
+              >
+                <span className="text-base leading-none">{p.icon}</span>
+                <span className="text-[10px] text-muted leading-none">{p.name}</span>
+                <div className="flex items-center gap-0.5">
+                  <span className="text-xs font-semibold text-text">{p.signIcon}</span>
+                  <span className="text-[10px] font-medium text-text">{p.sign}</span>
+                  {p.retrograde && (
+                    <span className="text-[9px] text-red-400 font-bold">℞</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Info Panel — rendered outside the overflow container */}
       {showInfo && (
         <div className="absolute left-0 right-0 top-full z-[60] animate-[fadeIn_0.2s_ease-out]">
-          <div className="mx-auto max-w-5xl px-4">
+          <div className="mx-auto max-w-lg px-3">
             <div className="ml-auto w-full sm:w-96 max-h-[70vh] overflow-y-auto rounded-b-xl border border-t-0 border-border bg-surface shadow-2xl">
               <div className="p-4 space-y-4">
                 {/* Retro Explanation */}
@@ -313,7 +382,13 @@ export function LivePlanetBand({ t, lang }: LivePlanetBandProps) {
                                   ? 'Merkür retrosu iletişim, teknoloji ve seyahatleri olumsuz etkiler. Sözleşme imzalamaktan, önemli kararlar almaktan ve yeni elektronik cihaz almaktan kaçının. Eski arkadaşlar ve bitmemiş işler geri dönebilir.'
                                   : p.name === 'Mars'
                                     ? 'Mars retrosu enerji seviyenizi düşürebilir. Aceleci kararlardan ve gereksiz tartışmalardan kaçının. İçsel motivasyonunuzu yeniden keşfetmek için iyi bir dönem.'
-                                    : 'Bu gezegenin enerjisi retro döneminde içe döner. İlgili konularda yavaşlama ve yeniden değerlendirme yaşanabilir.'}
+                                    : p.name === 'Venüs'
+                                      ? 'Venüs retrosu ilişkilerde ve finansal konularda yeniden değerlendirme getirir. Eski aşklar geri dönebilir. Büyük satın alımlardan ve estetik değişikliklerden kaçının.'
+                                      : p.name === 'Jüpiter'
+                                        ? 'Jüpiter retrosu içsel büyüme ve felsefi sorgulamayı tetikler. Dışsal genişleme yerine iç dünyanıza odaklanma zamanı.'
+                                        : p.name === 'Satürn'
+                                          ? 'Satürn retrosu geçmişte tamamlanmamış sorumlulukları gündeme getirir. Yapısal değişiklikler için kendini sorgulama dönemi.'
+                                          : 'Bu gezegenin enerjisi retro döneminde içe döner. İlgili konularda yavaşlama ve yeniden değerlendirme yaşanabilir.'}
                               </span>
                             </p>
                           </div>

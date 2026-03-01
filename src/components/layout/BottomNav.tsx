@@ -2,14 +2,13 @@
 
 interface BottomNavProps {
   activeTab: string;
-  onTabChange: (tab: string) => void;
   onAuthOpen: () => void;
   onClearTool: () => void;
   isLoggedIn: boolean;
   t: (key: string) => string;
 }
 
-export function BottomNav({ activeTab, onTabChange, onAuthOpen, onClearTool, isLoggedIn, t }: BottomNavProps) {
+export function BottomNav({ activeTab, onAuthOpen, onClearTool, isLoggedIn, t }: BottomNavProps) {
   const tabs = [
     {
       id: 'home',
@@ -62,20 +61,18 @@ export function BottomNav({ activeTab, onTabChange, onAuthOpen, onClearTool, isL
         window.scrollTo({ top: 0, behavior: 'smooth' });
         break;
       case 'tools':
-        onTabChange('daily');
         onClearTool();
-        document.querySelector('[data-tour="tools"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('section-daily')?.scrollIntoView({ behavior: 'smooth' });
         break;
       case 'sky':
-        onTabChange('sky');
         onClearTool();
-        document.querySelector('[data-tour="tools"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('section-sky')?.scrollIntoView({ behavior: 'smooth' });
         break;
       case 'profile':
         if (!isLoggedIn) {
           onAuthOpen();
         } else {
-          document.querySelector('[data-tour="profile"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          document.querySelector('[data-tour="profile"]')?.scrollIntoView({ behavior: 'smooth' });
         }
         break;
     }

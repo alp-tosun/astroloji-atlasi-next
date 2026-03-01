@@ -4,6 +4,98 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import type { User } from 'firebase/auth';
 import type { ToolId, Profile } from '@/types/profile';
 
+// Tools that should NOT be cached (unique user input each time)
+const NO_CACHE_TOOLS: Set<string> = new Set([
+  'ruya',   // dream text changes
+  'horar',  // question changes
+  'el',     // photo changes
+  'uyum',   // partner info changes
+  'tarot',  // each draw is unique
+]);
+
+const CACHE_PREFIX = 'astro-cache:';
+
+function getToday(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function profileHash(profile: Profile): string {
+  // Simple hash from profile fields that affect results
+  const key = [
+    profile.burc,
+    profile.ad,
+    profile['dogum-tarih'],
+    profile['dogum-saat'],
+    profile['dogum-yer'],
+    profile.cinsiyet,
+  ].join('|');
+  let h = 0;
+  for (let i = 0; i < key.length; i++) {
+    h = ((h << 5) - h + key.charCodeAt(i)) | 0;
+  }
+  return h.toString(36);
+}
+
+function getCacheKey(tool: ToolId, profile: Profile, lang: string, body: Record<string, unknown>): string {
+  // Include body keys that affect the result (exclude profil, uid, crossContext, lang — already covered)
+  const bodyKeys = Object.keys(body)
+    .filter((k) => !['profil', 'uid', 'crossContext', 'lang'].includes(k))
+    .sort()
+    .map((k) => `${k}=${JSON.stringify(body[k])}`)
+    .join('&');
+  return `${CACHE_PREFIX}${tool}:${lang}:${profileHash(profile)}:${getToday()}:${bodyKeys}`;
+}
+
+function getCache(key: string): string | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Expire if not from today
+    if (parsed.date !== getToday()) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return parsed.result || null;
+  } catch {
+    return null;
+  }
+}
+
+function setCache(key: string, result: string): void {
+  try {
+    localStorage.setItem(key, JSON.stringify({ date: getToday(), result }));
+  } catch {
+    // Storage full — clean old entries and retry
+    cleanOldCache();
+    try {
+      localStorage.setItem(key, JSON.stringify({ date: getToday(), result }));
+    } catch { /* give up */ }
+  }
+}
+
+function cleanOldCache(): void {
+  try {
+    const today = getToday();
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k?.startsWith(CACHE_PREFIX)) keys.push(k);
+    }
+    for (const k of keys) {
+      try {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.date !== today) localStorage.removeItem(k);
+        }
+      } catch {
+        localStorage.removeItem(k);
+      }
+    }
+  } catch { /* ignore */ }
+}
+
 interface UseToolApiOptions {
   user: User | null;
   profile: Profile;
@@ -27,6 +119,7 @@ export function useToolApi({
   const [results, setResults] = useState<Record<string, string>>({});
   const [loadingTool, setLoadingTool] = useState<ToolId | null>(null);
   const [streamingTool, setStreamingTool] = useState<ToolId | null>(null);
+  const [errorTool, setErrorTool] = useState<Record<string, string>>({});
 
   const activeToolRef = useRef<ToolId | null>(null);
   activeToolRef.current = activeTool;
@@ -44,6 +137,7 @@ export function useToolApi({
   const result = activeTool ? (results[activeTool] || '') : '';
   const resultLoading = loadingTool === activeTool;
   const streaming = streamingTool === activeTool;
+  const error = activeTool ? (errorTool[activeTool] || '') : '';
 
   const callApi = useCallback(
     async (endpoint: string, body: Record<string, unknown>) => {
@@ -55,16 +149,31 @@ export function useToolApi({
       const tool = activeToolRef.current;
       if (!tool) return;
 
+      // Check cache for cacheable tools
+      if (!NO_CACHE_TOOLS.has(tool)) {
+        const cacheKey = getCacheKey(tool, profile, lang, body);
+        const cached = getCache(cacheKey);
+        if (cached) {
+          setResults((prev) => ({ ...prev, [tool]: cached }));
+          setErrorTool((prev) => ({ ...prev, [tool]: '' }));
+          addCrossResult(tool, cached);
+          return;
+        }
+      }
+
       setLoadingTool(tool);
       setResults((prev) => ({ ...prev, [tool]: '' }));
       setStreamingTool(null);
+      setErrorTool((prev) => ({ ...prev, [tool]: '' }));
 
       const crossContext = getCrossContext(tool);
 
       try {
         // Offline detection
         if (typeof navigator !== 'undefined' && !navigator.onLine) {
-          setResults((prev) => ({ ...prev, [tool]: '\u274c İnternet bağlantısı bulunamadı. Lütfen bağlantınızı kontrol edin.' }));
+          const offlineMsg = 'İnternet bağlantısı bulunamadı. Lütfen bağlantınızı kontrol edin.';
+          setResults((prev) => ({ ...prev, [tool]: '\u274c ' + offlineMsg }));
+          setErrorTool((prev) => ({ ...prev, [tool]: offlineMsg }));
           setLoadingTool(null);
           return;
         }
@@ -105,19 +214,25 @@ export function useToolApi({
         }
 
         if (res.status === 401) {
-          setResults((prev) => ({ ...prev, [tool]: '\u274c Oturum süresi dolmuş. Lütfen tekrar giriş yapın.' }));
+          const msg401 = 'Oturum süresi dolmuş. Lütfen tekrar giriş yapın.';
+          setResults((prev) => ({ ...prev, [tool]: '\u274c ' + msg401 }));
+          setErrorTool((prev) => ({ ...prev, [tool]: msg401 }));
           setLoadingTool(null);
           onAuthRequired();
           return;
         }
         if (res.status === 403) {
           const data = await res.json().catch(() => ({ error: 'Erişim reddedildi.' }));
-          setResults((prev) => ({ ...prev, [tool]: '\u274c ' + (data.error || 'Bu özelliğe erişim izniniz yok.') }));
+          const msg403 = data.error || 'Bu özelliğe erişim izniniz yok.';
+          setResults((prev) => ({ ...prev, [tool]: '\u274c ' + msg403 }));
+          setErrorTool((prev) => ({ ...prev, [tool]: msg403 }));
           setLoadingTool(null);
           return;
         }
         if (res.status === 429) {
-          setResults((prev) => ({ ...prev, [tool]: '\u274c Çok fazla istek gönderildi. Lütfen biraz bekleyin.' }));
+          const msg429 = 'Çok fazla istek gönderildi. Lütfen biraz bekleyin.';
+          setResults((prev) => ({ ...prev, [tool]: '\u274c ' + msg429 }));
+          setErrorTool((prev) => ({ ...prev, [tool]: msg429 }));
           setLoadingTool(null);
           return;
         }
@@ -145,6 +260,7 @@ export function useToolApi({
                   const data = JSON.parse(line.slice(6));
                   if (data.error) {
                     setResults((prev) => ({ ...prev, [tool]: '\u274c ' + data.error }));
+                    setErrorTool((prev) => ({ ...prev, [tool]: data.error }));
                     setStreamingTool(null);
                     return;
                   }
@@ -153,6 +269,9 @@ export function useToolApi({
                     setStreamingTool(null);
                     if (data.full) {
                       addCrossResult(tool, data.full);
+                      if (!NO_CACHE_TOOLS.has(tool)) {
+                        setCache(getCacheKey(tool, profile, lang, body), data.full);
+                      }
                       import('@/lib/capacitor/haptics').then(({ hapticSuccess }) => hapticSuccess()).catch(() => {});
                     }
                     return;
@@ -168,8 +287,12 @@ export function useToolApi({
             if (lastFull) {
               setResults((prev) => ({ ...prev, [tool]: lastFull }));
               addCrossResult(tool, lastFull);
+              if (!NO_CACHE_TOOLS.has(tool)) {
+                setCache(getCacheKey(tool, profile, lang, body), lastFull);
+              }
             } else {
               setResults((prev) => ({ ...prev, [tool]: t('err_sunucu') }));
+              setErrorTool((prev) => ({ ...prev, [tool]: t('err_sunucu') }));
             }
           }
           setStreamingTool(null);
@@ -181,14 +304,20 @@ export function useToolApi({
           setResults((prev) => ({ ...prev, [tool]: data.result }));
           if (data.result) {
             addCrossResult(tool, data.result);
+            if (!NO_CACHE_TOOLS.has(tool)) {
+              setCache(getCacheKey(tool, profile, lang, body), data.result);
+            }
             import('@/lib/capacitor/haptics').then(({ hapticSuccess }) => hapticSuccess()).catch(() => {});
           }
         } else {
-          setResults((prev) => ({ ...prev, [tool]: '\u274c ' + (data.error || t('err_sunucu')) }));
+          const errMsg = data.error || t('err_sunucu');
+          setResults((prev) => ({ ...prev, [tool]: '\u274c ' + errMsg }));
+          setErrorTool((prev) => ({ ...prev, [tool]: errMsg }));
           import('@/lib/capacitor/haptics').then(({ hapticError }) => hapticError()).catch(() => {});
         }
       } catch {
         setResults((prev) => ({ ...prev, [tool]: t('err_sunucu') }));
+        setErrorTool((prev) => ({ ...prev, [tool]: t('err_sunucu') }));
         import('@/lib/capacitor/haptics').then(({ hapticError }) => hapticError()).catch(() => {});
       } finally {
         setLoadingTool(null);
@@ -198,12 +327,21 @@ export function useToolApi({
     [user, profile, lang, getCrossContext, addCrossResult, t, onAuthRequired],
   );
 
+  const clearError = useCallback(() => {
+    const tool = activeToolRef.current;
+    if (tool) {
+      setErrorTool((prev) => ({ ...prev, [tool]: '' }));
+    }
+  }, []);
+
   return {
     activeTool,
     setActiveTool,
     result,
     resultLoading,
     streaming,
+    error,
+    clearError,
     callApi,
   };
 }

@@ -15,43 +15,38 @@ interface ToolCardProps {
   index?: number;
 }
 
-export function ToolCard({ id, name, description, icon, active, premium, live, onClick, liveBadge, index = 0 }: ToolCardProps) {
+export function ToolCard({ id, name, icon, active, premium, live, onClick, index = 0 }: ToolCardProps) {
   return (
     <button
       onClick={() => onClick(id)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(id); } }}
       aria-label={`${name}${premium ? ' (Premium)' : ''}${live ? ' (Live)' : ''}`}
-      style={{ animationDelay: `${index * 60}ms` }}
-      className={`group relative flex flex-col text-left rounded-2xl border p-4 h-full min-h-[160px] transition-all duration-300 animate-[fadeSlideUp_0.4s_ease-out_both] ${
+      style={{ animationDelay: `${index * 40}ms` }}
+      className={`compact-card-glow group relative flex flex-col items-center justify-center text-center rounded-xl border aspect-square transition-all duration-200 animate-[fadeSlideUp_0.3s_ease-out_both] active:scale-95 ${
         active
-          ? 'border-accent bg-accent/8 shadow-lg shadow-accent/15 -translate-y-0.5'
-          : 'border-border bg-card hover:border-accent/40 hover:bg-card/90 hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/10'
+          ? 'border-accent bg-accent/10 shadow-md shadow-accent/15'
+          : 'border-border bg-card hover:border-accent/40 hover:bg-card/80 hover:shadow-md hover:shadow-accent/10'
       }`}
     >
-      {/* Badges - top right corner */}
+      {/* Premium badge — small gold lock */}
       {premium && (
-        <span className="absolute top-2.5 right-2.5 text-[10px] bg-gold/10 text-gold border border-gold/20 px-2 py-0.5 rounded-full font-semibold tracking-wide">
-          PRO
+        <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center">
+          <svg className="w-2.5 h-2.5 text-gold" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+          </svg>
         </span>
       )}
-      {live && (
-        <span className="absolute top-2.5 right-2.5 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-          <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-          {liveBadge || 'LIVE'}
-        </span>
+
+      {/* Live badge — green pulse dot */}
+      {live && !premium && (
+        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-green-400 animate-pulse" />
       )}
 
       {/* Icon */}
-      <div className="text-2xl mb-2.5 transition-transform duration-300 group-hover:scale-110">{icon}</div>
+      <span className="text-[2rem] leading-none mb-1.5 transition-transform duration-200 group-hover:scale-110">{icon}</span>
 
       {/* Name */}
-      <h3 className="text-sm font-semibold text-text mb-1">{name}</h3>
-
-      {/* Description */}
-      <p className="text-xs text-muted line-clamp-2 leading-relaxed">{description}</p>
-
-      {/* Hover glow effect */}
-      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-t from-accent/5 to-transparent" />
+      <span className="text-[11px] font-semibold text-text leading-tight line-clamp-1 px-1.5">{name}</span>
     </button>
   );
 }

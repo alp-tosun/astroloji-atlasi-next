@@ -104,8 +104,18 @@ export function GecmisPanel({ t, lang, user }: GecmisPanelProps) {
           <h3 className="text-base font-semibold text-text mb-1">{t('panel_gecmis_title')}</h3>
           <p className="text-xs text-muted">{t('panel_gecmis_hint')}</p>
         </div>
-        <div className="rounded-xl bg-card/50 border border-border p-6 text-center">
-          <p className="text-sm text-muted animate-pulse">{t('gecmis_yukleniyor')}</p>
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-xl bg-card/50 border border-border p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="skeleton-line w-6 h-6 rounded-full shrink-0" />
+                <div className="skeleton-line w-24 h-3.5" />
+                <div className="skeleton-line w-20 h-3 ml-auto" />
+              </div>
+              <div className="skeleton-line w-full h-3" />
+              <div className="skeleton-line w-3/4 h-3" />
+            </div>
+          ))}
         </div>
       </div>
     );

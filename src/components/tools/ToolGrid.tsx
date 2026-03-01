@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { ToolCard } from './ToolCard';
 import type { ToolId } from '@/types/profile';
 
@@ -50,14 +50,22 @@ export const TOOLS: ToolDef[] = [
 ];
 
 const SECTIONS = [
-  { key: 'daily', labelKey: 'sect_bugun', fallback: 'Bugün', icon: '☀️', gradient: 'from-amber-500/20 via-orange-500/5' },
-  { key: 'sky', labelKey: 'sect_gokyuzu', fallback: 'Gökyüzü', icon: '🌌', gradient: 'from-blue-500/20 via-indigo-500/5' },
-  { key: 'personal', labelKey: 'sect_kisisel', fallback: 'Kişisel', icon: '🧭', gradient: 'from-emerald-500/20 via-teal-500/5' },
-  { key: 'mystical', labelKey: 'sect_mistik', fallback: 'Mistik', icon: '🔮', gradient: 'from-purple-500/20 via-fuchsia-500/5' },
-  { key: 'archive', labelKey: 'sect_arsiv', fallback: 'Arşiv', icon: '📂', gradient: 'from-rose-500/20 via-pink-500/5' },
+  { key: 'daily', labelKey: 'sect_bugun', fallback: 'Bugün', icon: '☀️' },
+  { key: 'sky', labelKey: 'sect_gokyuzu', fallback: 'Gökyüzü', icon: '🌌' },
+  { key: 'personal', labelKey: 'sect_kisisel', fallback: 'Kişisel', icon: '🧭' },
+  { key: 'mystical', labelKey: 'sect_mistik', fallback: 'Mistik', icon: '🔮' },
+  { key: 'archive', labelKey: 'sect_arsiv', fallback: 'Arşiv', icon: '📂' },
 ] as const;
 
-/* ── Category Tabs (rendered separately above FeaturedTools) ── */
+const GRADIENT_MAP: Record<string, string> = {
+  daily: 'from-[var(--gradient-daily-from)] to-[var(--gradient-daily-to)]',
+  sky: 'from-[var(--gradient-sky-from)] to-[var(--gradient-sky-to)]',
+  personal: 'from-[var(--gradient-personal-from)] to-[var(--gradient-personal-to)]',
+  mystical: 'from-[var(--gradient-mystical-from)] to-[var(--gradient-mystical-to)]',
+  archive: 'from-[var(--gradient-archive-from)] to-[var(--gradient-archive-to)]',
+};
+
+/* ── Category Tabs — compact pill buttons ── */
 interface CategoryTabsProps {
   activeTab: string;
   onTabChange: (key: string) => void;
@@ -65,88 +73,100 @@ interface CategoryTabsProps {
 }
 
 export function CategoryTabs({ activeTab, onTabChange, t }: CategoryTabsProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll active pill into view
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const activeBtn = container.querySelector(`[data-pill="${activeTab}"]`) as HTMLElement | null;
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [activeTab]);
+
+  const handleClick = (key: string) => {
+    onTabChange(key);
+    const el = document.getElementById(`section-${key}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-      {SECTIONS.map((section) => {
-        const isActive = activeTab === section.key;
-        const sectionTools = TOOLS.filter((tool) => tool.section === section.key);
-
-        return (
-          <button
-            key={section.key}
-            onClick={() => onTabChange(section.key)}
-            className={`group relative shrink-0 rounded-2xl border p-3 text-left transition-all duration-300 overflow-hidden min-w-[140px] ${
-              isActive
-                ? 'bg-gradient-to-br ' + section.gradient + ' to-surface/80 border-accent/30 shadow-lg shadow-accent/5'
-                : 'bg-card/40 border-border/50 hover:bg-card/70 hover:border-border'
-            }`}
-          >
-            {/* Header row */}
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`text-xl transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}>
-                {section.icon}
-              </span>
-              <span className={`text-sm font-bold truncate transition-colors ${
-                isActive ? 'text-text' : 'text-muted group-hover:text-text'
-              }`}>
-                {t(section.labelKey) || section.fallback}
-              </span>
-            </div>
-
-            {/* Tool names */}
-            <div className="space-y-0.5">
-              {sectionTools.slice(0, 4).map((tool) => (
-                <div
-                  key={tool.id}
-                  className={`flex items-center gap-1.5 text-xs transition-colors ${
-                    isActive ? 'text-muted' : 'text-muted/50 group-hover:text-muted/70'
-                  }`}
-                >
-                  <span className={`text-sm transition-opacity ${isActive ? 'opacity-100' : 'opacity-50 group-hover:opacity-70'}`}>
-                    {tool.icon}
-                  </span>
-                  <span className="truncate">{t(tool.nameKey)}</span>
-                </div>
-              ))}
-              {sectionTools.length > 4 && (
-                <div className={`text-[10px] ${isActive ? 'text-muted' : 'text-muted/40'}`}>
-                  +{sectionTools.length - 4} {t('sect_daha') || 'daha'}
-                </div>
-              )}
-            </div>
-          </button>
-        );
-      })}
+    <div className="sticky top-[88px] z-30 bg-bg/80 backdrop-blur-xl py-2 -mx-3 px-3">
+      <div ref={scrollRef} className="flex gap-2 overflow-x-auto scrollbar-hide">
+        {SECTIONS.map((section) => {
+          const isActive = activeTab === section.key;
+          return (
+            <button
+              key={section.key}
+              data-pill={section.key}
+              onClick={() => handleClick(section.key)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                isActive
+                  ? `bg-gradient-to-r ${GRADIENT_MAP[section.key]} text-white shadow-sm`
+                  : 'bg-card/50 text-muted hover:text-text hover:bg-card/80 border border-border/50'
+              }`}
+            >
+              <span>{section.icon}</span>
+              <span>{t(section.labelKey) || section.fallback}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-/* ── Tool Grid (only the cards, tab state comes from parent) ── */
+/* ── Tool Grid — all categories stacked ── */
 interface ToolGridProps {
   activeTool: ToolId | null;
-  activeTab: string;
   onSelect: (id: ToolId) => void;
+  onActiveTabChange?: (key: string) => void;
   t: (key: string) => string;
 }
 
-export function ToolGrid({ activeTool, activeTab, onSelect, t }: ToolGridProps) {
+export function ToolGrid({ activeTool, onSelect, onActiveTabChange, t }: ToolGridProps) {
   const [search, setSearch] = useState('');
   const query = search.trim().toLowerCase();
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
-  const filteredTools = useMemo(
-    () =>
-      query
-        ? TOOLS.filter((tool) => {
-            const name = t(tool.nameKey).toLowerCase();
-            const desc = t(tool.descKey).toLowerCase();
-            return name.includes(query) || desc.includes(query);
-          })
-        : TOOLS.filter((tool) => tool.section === activeTab),
-    [query, activeTab, t],
-  );
+  // IntersectionObserver for automatic active pill tracking
+  useEffect(() => {
+    if (!onActiveTabChange) return;
+    const observers: IntersectionObserver[] = [];
+
+    SECTIONS.forEach((section) => {
+      const el = document.getElementById(`section-${section.key}`);
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              onActiveTabChange(section.key);
+            }
+          });
+        },
+        { rootMargin: '-120px 0px -60% 0px', threshold: 0 }
+      );
+      observer.observe(el);
+      observers.push(observer);
+    });
+
+    return () => observers.forEach((o) => o.disconnect());
+  }, [onActiveTabChange]);
+
+  // Search: flat 3-col grid with all matching tools
+  const searchResults = useMemo(() => {
+    if (!query) return null;
+    return TOOLS.filter((tool) => {
+      const name = t(tool.nameKey).toLowerCase();
+      const desc = t(tool.descKey).toLowerCase();
+      return name.includes(query) || desc.includes(query);
+    });
+  }, [query, t]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Search bar */}
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">🔍</span>
@@ -159,23 +179,67 @@ export function ToolGrid({ activeTool, activeTab, onSelect, t }: ToolGridProps) 
         />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {filteredTools.map((tool, i) => (
-          <ToolCard
-            key={tool.id}
-            id={tool.id}
-            name={t(tool.nameKey)}
-            description={t(tool.descKey)}
-            icon={tool.icon}
-            active={activeTool === tool.id}
-            premium={tool.premium}
-            live={tool.live}
-            onClick={onSelect}
-            liveBadge={t('live_badge')}
-            index={i}
-          />
-        ))}
-      </div>
+      {/* Search results — flat grid */}
+      {searchResults ? (
+        <div className="grid grid-cols-3 gap-2.5">
+          {searchResults.map((tool, i) => (
+            <ToolCard
+              key={tool.id}
+              id={tool.id}
+              name={t(tool.nameKey)}
+              description={t(tool.descKey)}
+              icon={tool.icon}
+              active={activeTool === tool.id}
+              premium={tool.premium}
+              live={tool.live}
+              onClick={onSelect}
+              liveBadge={t('live_badge')}
+              index={i}
+            />
+          ))}
+        </div>
+      ) : (
+        /* All categories stacked */
+        <div className="space-y-5">
+          {SECTIONS.map((section) => {
+            const sectionTools = TOOLS.filter((tool) => tool.section === section.key);
+            return (
+              <section
+                key={section.key}
+                id={`section-${section.key}`}
+                className="scroll-mt-28 animate-[sectionSlideIn_0.4s_ease-out_both]"
+                ref={(el) => { sectionRefs.current[section.key] = el; }}
+              >
+                {/* Gradient category banner */}
+                <div className={`category-banner bg-gradient-to-r ${GRADIENT_MAP[section.key]} mb-2.5`}>
+                  <span className="text-base">{section.icon}</span>
+                  <span>{t(section.labelKey) || section.fallback}</span>
+                  <span className="ml-auto text-xs opacity-80">{sectionTools.length}</span>
+                </div>
+
+                {/* 3-column grid */}
+                <div className="grid grid-cols-3 gap-2.5">
+                  {sectionTools.map((tool, i) => (
+                    <ToolCard
+                      key={tool.id}
+                      id={tool.id}
+                      name={t(tool.nameKey)}
+                      description={t(tool.descKey)}
+                      icon={tool.icon}
+                      active={activeTool === tool.id}
+                      premium={tool.premium}
+                      live={tool.live}
+                      onClick={onSelect}
+                      liveBadge={t('live_badge')}
+                      index={i}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

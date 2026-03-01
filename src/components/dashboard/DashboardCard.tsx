@@ -90,7 +90,29 @@ export function DashboardCard({ name, streakData, lastAnalysis, lang, t, onToolS
 
   const suggestedToolNameKey = `card_${suggestedTool}_name`;
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <div className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/10 via-purple-900/20 to-indigo-900/10 backdrop-blur-sm p-5 sm:p-6 space-y-4">
+        <div className="space-y-2">
+          <div className="skeleton-line w-3/5 h-5" />
+          <div className="skeleton-line w-2/5 h-3" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-xl bg-card/60 border border-border/50 p-2.5 space-y-2">
+            <div className="skeleton-line w-1/2 h-3" />
+            <div className="skeleton-line w-full h-3" />
+          </div>
+          <div className="rounded-xl bg-card/60 border border-border/50 p-3 space-y-2">
+            <div className="skeleton-line w-1/2 h-3" />
+            <div className="skeleton-line w-3/4 h-3" />
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <div className="skeleton-line w-40 h-7 rounded-full" />
+        </div>
+      </div>
+    );
+  }
 
   const streak = streakData?.streak || 0;
   const moonMessages = lang === 'en' ? MOON_MESSAGES_EN : MOON_MESSAGES_TR;
@@ -122,20 +144,25 @@ export function DashboardCard({ name, streakData, lastAnalysis, lang, t, onToolS
   })();
 
   return (
-    <div className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/5 via-surface/80 to-card/50 backdrop-blur-sm p-5 sm:p-6 space-y-4">
+    <div className="relative rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/10 via-purple-900/20 to-indigo-900/10 backdrop-blur-sm p-5 sm:p-6 space-y-4 overflow-hidden">
+      {/* Decorative blur orb */}
+      <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+
       {/* Greeting */}
-      <div>
-        <h2 className="text-lg font-bold text-text">
-          {t('dash_greeting').replace('{name}', name || t('dash_default_name'))}
+      <div className="relative">
+        <h2 className="text-lg font-bold">
+          <span className="bg-gradient-to-r from-text to-accent-light bg-clip-text text-transparent">
+            {t('dash_greeting').replace('{name}', name || t('dash_default_name'))}
+          </span>
         </h2>
         <p className="text-sm text-muted mt-0.5">{t('dash_subtitle')}</p>
       </div>
 
       {/* Info cards row */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="relative grid grid-cols-2 gap-2">
         {/* Moon sign */}
         {moonSign && (
-          <div className="rounded-xl bg-card/60 border border-border/50 p-3">
+          <div className="rounded-xl bg-card/60 border border-border/50 p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <span className="text-base">{moonIcon}</span>
               <span className="text-xs font-medium text-text">{t('dash_moon')}</span>

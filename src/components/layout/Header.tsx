@@ -46,22 +46,16 @@ export function Header({ lang, onLangChange, onAuthOpen, onToolSelect, t, streak
   return (
     <>
       <header className="sticky top-[40px] z-40 border-b border-border/50 bg-bg/80 backdrop-blur-xl safe-area-top">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <div role="img" aria-label={t('site_name')} className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-accent via-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-accent/25 shrink-0">
-              <span className="text-white text-lg leading-none" aria-hidden="true">✦</span>
-              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-bg animate-pulse" aria-hidden="true" />
+        <div className="mx-auto flex max-w-lg items-center justify-between px-3 py-2">
+          <div className="flex items-center gap-2">
+            <div role="img" aria-label={t('site_name')} className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent via-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-accent/25 shrink-0">
+              <span className="text-white text-base leading-none" aria-hidden="true">✦</span>
             </div>
-            <div className="flex flex-col min-w-0">
-              <h1 className="text-base sm:text-lg font-extrabold leading-tight tracking-tight">
-                <span className="bg-gradient-to-r from-text via-accent to-purple-400 bg-clip-text text-transparent">
-                  {t('site_name')}
-                </span>
-              </h1>
-              <span className="hidden sm:block text-[10px] text-muted/70 leading-tight mt-0.5 truncate">
-                {t('site_sub')}
+            <h1 className="text-sm font-extrabold leading-tight tracking-tight">
+              <span className="bg-gradient-to-r from-text via-accent to-purple-400 bg-clip-text text-transparent">
+                {t('site_name')}
               </span>
-            </div>
+            </h1>
           </div>
 
           <div className="flex items-center gap-3">
@@ -80,8 +74,8 @@ export function Header({ lang, onLangChange, onAuthOpen, onToolSelect, t, streak
               ))}
             </div>
 
-            {/* Premium toggle */}
-            <label className="flex items-center gap-2 cursor-pointer">
+            {/* Premium toggle — hidden on mobile */}
+            <label className="hidden md:flex items-center gap-2 cursor-pointer">
               <span className="text-xs text-muted">{t('prem_label')}</span>
               <div className="relative">
                 <input

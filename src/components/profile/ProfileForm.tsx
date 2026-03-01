@@ -34,14 +34,14 @@ export function ProfileForm({ t, onToolSelect }: ProfileFormProps) {
   const birthDate = profile['dogum-tarih'] || '';
 
   return (
-    <div className="rounded-2xl border border-border bg-surface/80 backdrop-blur-sm overflow-hidden">
+    <div className="rounded-xl border border-border bg-surface/80 backdrop-blur-sm overflow-hidden">
       {/* Compact summary bar — always visible */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-card/30 transition-colors"
+        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-card/30 transition-colors"
       >
         {/* Avatar / icon */}
-        <div className="w-9 h-9 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center text-lg shrink-0">
+        <div className="w-8 h-8 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center text-base shrink-0">
           {burc ? burcIcon : '✦'}
         </div>
 
@@ -89,7 +89,7 @@ export function ProfileForm({ t, onToolSelect }: ProfileFormProps) {
         }`}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-border px-5 py-5 sm:px-6 space-y-4">
+          <div className="border-t border-border px-4 py-4 sm:px-5 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold text-text">{t('profil_title')}</h2>
               <ProfileSignal score={signalScore} t={t} />

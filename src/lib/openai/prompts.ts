@@ -2,16 +2,16 @@ import type { Profile } from '@/types/profile';
 
 export const DERIN_FORMAT = `
 
-Yanıt formatı (markdown):
+Yanıt formatı (markdown). KISA ve ÖZ yaz, gereksiz uzatma:
 
 ## Özet
-(2-3 cümle genel değerlendirme.)
+(1-2 cümle, net.)
 
 ## Analiz
-(Ana tespitler, maddeler halinde. Eksik alanlar için spekülasyon yapma.)
+(Sadece önemli tespitler, kısa maddeler.)
 
 ## Öneri
-(2-3 somut, uygulanabilir adım.)`;
+(1-2 somut adım.)`;
 
 /**
  * Anti-injection instruction appended to all system prompts.
